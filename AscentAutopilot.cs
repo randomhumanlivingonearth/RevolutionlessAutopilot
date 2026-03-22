@@ -87,8 +87,8 @@ namespace RevolutionlessAutopilot
         private double deltaVTarget;
         private double circularizeEntryWorldTime;
         private double throttleUnlockWorldTime;
-        private bool enginesInitialized = false;
-        private Stage currentStage = null;
+        // private bool enginesInitialized = false;
+        // private Stage currentStage = null;
         private HashSet<Stage> stagingAttempted = new HashSet<Stage>();
         private double actualTurnStartAltitude = 0;
         private double atmosphereHeight = 0;                   // (RU) высота атмосферы текущей планеты | (EN) the altitude of the current planet's atmosphere
@@ -112,7 +112,7 @@ namespace RevolutionlessAutopilot
                 }
             }
 
-            if (debug) Debug.Log("[Autopilot] AscentAutopilot initialized");
+            if (debug) Debug.Log("[Autopilot] AscentAutopilot initialized, ModVersion: 0.9.0");
         }
 
         public void SetRocket(Rocket rocket)
@@ -128,8 +128,8 @@ namespace RevolutionlessAutopilot
             InitializeMissionTargets();
             IsActive = true;
             state = AscentState.Liftoff;
-            enginesInitialized = false;
-            currentStage = null;
+            // enginesInitialized = false;
+            // currentStage = null;
             stagingAttempted.Clear();
             actualTurnStartAltitude = 0;
             throttleUnlockWorldTime = 0.0;
@@ -206,19 +206,19 @@ namespace RevolutionlessAutopilot
                 Debug.Log($"[Autopilot] State: {state}, Alt: {altitude:F0}m, RawApo: {rawApoapsis:F0}m, ApoAlt: {apoapsisAltitude:F0}m, PerAlt: {periapsisAltitude:F0}m, TargetRadius: {targetRadius:F0}m, Vel: {velocity:F1}m/s, TurnAxis: {rocket.arrowkeys.turnAxis.Value:F2}, aboveAtmo: {aboveAtmosphere}");
             }
 
-            Stage newStage = (rocket.staging.stages.Count > 0) ? rocket.staging.stages[0] : null;
-            if (newStage != currentStage)
-            {
-                if (debug) Debug.Log($"[Autopilot] Stage changed from {currentStage?.stageId} to {newStage?.stageId}");
-                currentStage = newStage;
-                enginesInitialized = false;
-            }
+            // Stage newStage = (rocket.staging.stages.Count > 0) ? rocket.staging.stages[0] : null;
+            // if (newStage != currentStage)
+            // {
+            //     if (debug) Debug.Log($"[Autopilot] Stage changed from {currentStage?.stageId} to {newStage?.stageId}");
+            //     currentStage = newStage;
+            //     enginesInitialized = false;
+            // }
 
-            if (!enginesInitialized && currentStage != null)
-            {
-                InitializeEngines();
-                enginesInitialized = true;
-            }
+            // if (!enginesInitialized && currentStage != null)
+            // {
+            //     InitializeEngines();
+            //     enginesInitialized = true;
+            // }
 
             CheckStaging();
 
@@ -606,35 +606,35 @@ namespace RevolutionlessAutopilot
             }
         }
 
-        private void InitializeEngines()
-        {
-            if (currentStage == null) return;
+        // private void InitializeEngines()
+        // {
+        //     if (currentStage == null) return;
 
-            if (!rocket.staging.stages.Contains(currentStage))
-            {
-                if (debug) Debug.Log("[Autopilot] Current stage no longer exists, aborting engine init");
-                return;
-            }
+        //     if (!rocket.staging.stages.Contains(currentStage))
+        //     {
+        //         if (debug) Debug.Log("[Autopilot] Current stage no longer exists, aborting engine init");
+        //         return;
+        //     }
 
-            if (debug) Debug.Log($"[Autopilot] Initializing engines for stage {currentStage.stageId}");
+        //     if (debug) Debug.Log($"[Autopilot] Initializing engines for stage {currentStage.stageId}");
 
-            foreach (var part in currentStage.parts)
-            {
-                foreach (var engine in part.GetModules<EngineModule>())
-                {
-                    if (!engine.engineOn.Value)
-                    {
-                        engine.engineOn.Value = true;
-                        if (debug) Debug.Log($"[Autopilot] Engine turned ON");
-                    }
-                    if (engine.hasGimbal && engine.gimbalOn != null && !engine.gimbalOn.Value)
-                    {
-                        engine.gimbalOn.Value = true;
-                        if (debug) Debug.Log($"[Autopilot] Gimbal enabled");
-                    }
-                }
-            }
-        }
+        //     foreach (var part in currentStage.parts)
+        //     {
+        //         foreach (var engine in part.GetModules<EngineModule>())
+        //         {
+        //             if (!engine.engineOn.Value)
+        //             {
+        //                 engine.engineOn.Value = true;
+        //                 if (debug) Debug.Log($"[Autopilot] Engine turned ON");
+        //             }
+        //             if (engine.hasGimbal && engine.gimbalOn != null && !engine.gimbalOn.Value)
+        //             {
+        //                 engine.gimbalOn.Value = true;
+        //                 if (debug) Debug.Log($"[Autopilot] Gimbal enabled");
+        //             }
+        //         }
+        //     }
+        // }
 
         private void SetThrottle(float percent)
         {
@@ -926,71 +926,70 @@ namespace RevolutionlessAutopilot
 
         private void CheckStaging()
         {
-            if (currentStage == null) return;
+            if (rocket.staging.stages.Count == 0) return;
+            // (RU) Не проверяем стейджинг на старте — двигатели ещё не запущены | (EN) Don't check staging at liftoff — engines not yet started
+            if (state == AscentState.Liftoff) return;
 
-            if (stagingAttempted.Contains(currentStage))
-                return;
+            Stage stage = rocket.staging.stages[0];
 
-            var engines = currentStage.parts
-                .SelectMany(p => p.GetModules<EngineModule>())
-                .Where(e => e != null)
-                .ToList();
-
-            var detachModules = currentStage.parts
-                .SelectMany(p => p.GetModules<DetachModule>())
-                .ToList();
-
-            if (debug && UnityEngine.Time.frameCount % 60 == 0)
+            // (RU) Проверяем есть ли тяга от любого двигателя | (EN) Check if any engine is producing thrust
+            bool anyThrust = false;
+            foreach (var engine in rocket.partHolder.GetModules<EngineModule>())
             {
-                Debug.Log($"[Autopilot] Stage {currentStage.stageId}: engines count={engines.Count}, detach modules count={detachModules.Count}");
-            }
-
-            if (engines.Count == 0)
-            {
-                if (debug) Debug.Log($"[Autopilot] Stage {currentStage.stageId} has no engines, removing it.");
-                stagingAttempted.Add(currentStage);
-                if (rocket.staging.stages.Contains(currentStage))
+                if (engine.engineOn.Value && engine.thrust.Value > 0.001f)
                 {
-                    rocket.staging.RemoveStage(currentStage, false);
-                }
-                return;
-            }
-
-            bool hasFuel = false;
-            foreach (var engine in engines)
-            {
-                if (engine.engineOn.Value && engine.source.CanFlow(new MsgNone()))
-                {
-                    hasFuel = true;
-                    if (debug && UnityEngine.Time.frameCount % 60 == 0)
-                        Debug.Log($"[Autopilot] Engine has fuel and is on");
+                    anyThrust = true;
                     break;
                 }
             }
-
-            if (!hasFuel)
+            if (!anyThrust)
             {
-                if (debug) Debug.Log($"[Autopilot] Stage {currentStage.stageId} out of fuel, staging...");
-                stagingAttempted.Add(currentStage);
-
-                var parts = currentStage.parts.ToArray();
-                var partData = parts.Select(p => new ValueTuple<Part, PolygonData>(p, null)).ToArray();
-                Rocket.UseParts(true, partData);
-
-                if (detachModules.Count > 0)
+                foreach (var booster in rocket.partHolder.GetModules<BoosterModule>())
                 {
-                    var sharedData = new UsePartData.SharedData(true);
-                    foreach (var detach in detachModules)
+                    if (booster.enabled && booster.thrustVector.Value.magnitude > 0.001f)
                     {
-                        var useData = new UsePartData(sharedData, null);
-                        detach.Detach(useData);
+                        anyThrust = true;
+                        break;
                     }
                 }
+            }
 
-                if (rocket.staging.stages.Contains(currentStage))
+            if (anyThrust) return;
+            if (stagingAttempted.Contains(stage)) return;
+            stagingAttempted.Add(stage);
+
+            if (debug) Debug.Log($"[Autopilot] No thrust detected, firing stage {stage.stageId}");
+
+            try
+            {
+                if (StagingDrawer.main == null)
                 {
-                    rocket.staging.RemoveStage(currentStage, false);
+                    if (debug) Debug.Log("[Autopilot] StagingDrawer.main is null");
+                    return;
                 }
+
+                var method = typeof(StagingDrawer).GetMethod("UseStage",
+                    BindingFlags.NonPublic | BindingFlags.Instance);
+
+                if (method == null)
+                {
+                    if (debug) Debug.Log("[Autopilot] UseStage method not found");
+                    return;
+                }
+
+                // (RU) Временно захватываем управление чтобы пройти проверку HasControl внутри UseStage | (EN) Temporarily claim control to pass the HasControl check inside UseStage
+                bool hadControl = PlayerController.main.hasControl.Value;
+                PlayerController.main.hasControl.Value = true;
+
+                method.Invoke(StagingDrawer.main, new object[] { stage });
+
+                PlayerController.main.hasControl.Value = hadControl;
+
+                if (debug) Debug.Log($"[Autopilot] Stage {stage.stageId} fired successfully");
+            }
+            catch (Exception e)
+            {
+                if (debug) Debug.Log($"[Autopilot] UseStage failed: {e.Message}");
             }
         }
 
