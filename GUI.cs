@@ -10,40 +10,28 @@ namespace RevolutionlessAutopilot
 {
     public static class GUI
     {
-        // ──────────────────────────────────────────────
         // (RU) Главное окно | (EN) Main window
-        // ──────────────────────────────────────────────
-
         private static GameObject mainHolder;
         private static ClosableWindow mainWindow;
         private static readonly int mainWindowID = Builder.GetRandomID();
         private const string mainWindowTitle = "Autopilot";
         private const string mainWindowPosKey = "RevolutionlessAutopilot.MainWindow";
 
-        // ──────────────────────────────────────────────
         // (RU) Окно подъёма | (EN) Ascent window
-        // ──────────────────────────────────────────────
-
         private static GameObject ascentHolder;
         private static ClosableWindow ascentWindow;
         private static readonly int ascentWindowID = Builder.GetRandomID();
         private const string ascentWindowTitle = "Ascent Autopilot";
         private const string ascentWindowPosKey = "RevolutionlessAutopilot.AscentWindow";
 
-        // ──────────────────────────────────────────────
         // (RU) Окно посадки | (EN) Landing window
-        // ──────────────────────────────────────────────
-
         private static GameObject landingHolder;
         private static ClosableWindow landingWindow;
         private static readonly int landingWindowID = Builder.GetRandomID();
         private const string landingWindowTitle = "Landing Autopilot";
         private const string landingWindowPosKey = "RevolutionlessAutopilot.LandingWindow";
 
-        // ──────────────────────────────────────────────
         // (RU) Состояние UI | (EN) UI state
-        // ──────────────────────────────────────────────
-
         private const float minTargetOrbitKm = 1f;
         private const float fallbackRecommendedOrbitMeters = 40000f;
         private static readonly float[] targetAdjustButtonsKm = { 1f, 10f, 100f, 1000f, 10000f };
@@ -54,10 +42,7 @@ namespace RevolutionlessAutopilot
         private static TextInput targetAltitudeInput;
         private static string pendingTargetOrbitText;
 
-        // ──────────────────────────────────────────────
         // (RU) Показать / скрыть всё GUI | (EN) Show / hide all GUI
-        // ──────────────────────────────────────────────
-
         public static void ShowGUI()
         {
             // (RU) Главное окно | (EN) Main window
@@ -74,7 +59,7 @@ namespace RevolutionlessAutopilot
             mainWindow.CreateLayoutGroup(Type.Vertical, TextAnchor.MiddleCenter, 10f);
 
             Builder.CreateButton(mainWindow, 280, 40, 0, 0, ToggleAscentWindow, "Ascent");
-            Builder.CreateButton(mainWindow, 280, 40, 0, 0, ToggleLandingWindow, "Landing");
+            // Builder.CreateButton(mainWindow, 280, 40, 0, 0, ToggleLandingWindow, "Landing");
 
             // (RU) Окно подъёма | (EN) Ascent window
             ascentHolder = Builder.CreateHolder(Builder.SceneToAttach.CurrentScene, "AutopilotAscentHolder");
@@ -106,12 +91,13 @@ namespace RevolutionlessAutopilot
             landingWindow.CreateLayoutGroup(Type.Vertical, TextAnchor.MiddleCenter, 5f);
             landingWindow.Active = false;
 
-            BuildLandingWindow();
+            // (RU) Временно скрываем окно посадки до тех пор, пока эта функция не будет реализована должным образом. | (EN) Temporarily hiding landing window until it's implemented properly
+            // BuildLandingWindow();
 
-            // (RU) Сохраняем позиции при перетаскивании | (EN) Save positions on drag
-            mainWindow.gameObject.GetComponent<DraggableWindowModule>().OnDropAction += SaveMainWindowPosition;
-            ascentWindow.gameObject.GetComponent<DraggableWindowModule>().OnDropAction += SaveAscentWindowPosition;
-            landingWindow.gameObject.GetComponent<DraggableWindowModule>().OnDropAction += SaveLandingWindowPosition;
+            // // (RU) Сохраняем позиции при перетаскивании | (EN) Save positions on drag
+            // mainWindow.gameObject.GetComponent<DraggableWindowModule>().OnDropAction += SaveMainWindowPosition;
+            // ascentWindow.gameObject.GetComponent<DraggableWindowModule>().OnDropAction += SaveAscentWindowPosition;
+            // landingWindow.gameObject.GetComponent<DraggableWindowModule>().OnDropAction += SaveLandingWindowPosition;
         }
 
         public static void HideGUI()
@@ -124,10 +110,7 @@ namespace RevolutionlessAutopilot
                 Object.Destroy(landingHolder);
         }
 
-        // ──────────────────────────────────────────────
         // (RU) Переключение подокон | (EN) Sub-window toggles
-        // ──────────────────────────────────────────────
-
         private static void ToggleAscentWindow()
         {
             ascentWindowVisible = !ascentWindowVisible;
@@ -140,10 +123,7 @@ namespace RevolutionlessAutopilot
             landingWindow.Active = landingWindowVisible;
         }
 
-        // ──────────────────────────────────────────────
         // (RU) Построение окна подъёма | (EN) Build ascent window
-        // ──────────────────────────────────────────────
-
         private static void BuildAscentWindow()
         {
             var inputRow = Builder.CreateContainer(ascentWindow);
@@ -167,20 +147,14 @@ namespace RevolutionlessAutopilot
             Builder.CreateButton(ascentWindow, 220, 40, 0, 0, ToggleAscentAutopilot, "Start Ascent");
         }
 
-        // ──────────────────────────────────────────────
         // (RU) Построение окна посадки | (EN) Build landing window
-        // ──────────────────────────────────────────────
-
         private static void BuildLandingWindow()
         {
             Builder.CreateLabel(landingWindow, 360, 30, 0, 0, "Performs deorbit, flip & suicide burn.");
             Builder.CreateButton(landingWindow, 220, 40, 0, 0, ToggleLandingAutopilot, "Start Landing");
         }
 
-        // ──────────────────────────────────────────────
         // (RU) Логика подъёма | (EN) Ascent logic
-        // ──────────────────────────────────────────────
-
         private static void OnTargetAltitudeValueChanged(string value)
         {
             pendingTargetOrbitText = value;
@@ -255,19 +229,13 @@ namespace RevolutionlessAutopilot
             SetTargetOrbitKm(recommendedMeters / 1000f);
         }
 
-        // ──────────────────────────────────────────────
         // (RU) Логика посадки | (EN) Landing logic
-        // ──────────────────────────────────────────────
-
         private static void ToggleLandingAutopilot()
         {
             AutopilotUpdater.Instance.ToggleLanding();
         }
 
-        // ──────────────────────────────────────────────
         // (RU) Вспомогательные методы парсинга | (EN) Parse helper methods
-        // ──────────────────────────────────────────────
-
         private static bool TryParseTargetOrbitKm(string value, out float km)
         {
             km = 0f;
@@ -291,10 +259,7 @@ namespace RevolutionlessAutopilot
             return (altitudeMeters / 1000f).ToString("0.0", CultureInfo.InvariantCulture);
         }
 
-        // ──────────────────────────────────────────────
         // (RU) Сохранение позиций окон | (EN) Save window positions
-        // ──────────────────────────────────────────────
-
         private static void SaveMainWindowPosition()
         {
             Settings.data.mainWindowPosition = Vector2Int.RoundToInt(mainWindow.Position);
