@@ -97,7 +97,7 @@ namespace RevolutionlessAutopilot
             landingWindow = UIToolsBuilder.CreateClosableWindow(
                 landingHolder.transform,
                 landingWindowID,
-                380, 120,
+                380, 140,
                 Settings.data.landingWindowPosition.x,
                 Settings.data.landingWindowPosition.y,
                 true, false, 0.95f, landingWindowTitle, false
