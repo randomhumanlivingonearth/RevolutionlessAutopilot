@@ -95,6 +95,7 @@ namespace RevolutionlessAutopilot
 
         private bool debug = true;
         private int coastLogCounter = 0;
+        private double cachedMaxAcceleration = 0; // (RU) Последнее известное ненулевое ускорение — для использования когда двигатели не горят | (EN) Last known non-zero acceleration — used when engines are not burning
 
         public bool IsActive { get; private set; }
 
@@ -179,11 +180,28 @@ namespace RevolutionlessAutopilot
             RefreshRuntimeSettings(logTargetChanges: true);
 
             // (RU) Если ступеней не осталось, автопилот не может работать | (EN) If no stages remain, the autopilot cannot operate
+            // Major Bug
             if (rocket.staging.stages.Count == 0)
             {
-                if (debug) Debug.Log("[Autopilot] No stages left, stopping autopilot");
-                Stop();
-                return;
+                // Check whether engines are still producing thrust before giving up
+                bool hasThrust = false;
+                foreach (var engine in rocket.partHolder.GetModules<EngineModule>())
+                    if (engine.engineOn.Value && engine.thrust.Value > 0.001f) { hasThrust = true; break; }
+                if (!hasThrust)
+                    foreach (var booster in rocket.partHolder.GetModules<BoosterModule>())
+                        if (booster.enabled && booster.thrustVector.Value.magnitude > 0.001f) { hasThrust = true; break; }
+
+                // If we're actively burning, let the burn finish even without stages in queue
+                bool activeBurn = state == AscentState.Circularize
+                            || state == AscentState.TransferBurn
+                            || state == AscentState.PitchOver;
+
+                if (!hasThrust && !activeBurn)
+                {
+                    if (debug) Debug.Log("[Autopilot] No stages and no thrust, stopping autopilot");
+                    Stop();
+                    return;
+                }
             }
 
             double altitude = rocket.location.Value.Radius - rocket.location.planet.Value.Radius;
@@ -430,19 +448,20 @@ namespace RevolutionlessAutopilot
                     // (RU) целимся не в "заранее вычисленный" delta-V, а в скорость на текущем апоапсисе, | (EN) we target not a precomputed delta-V but the speed at the current apoapsis,
                     // (RU) чтобы при прохождении апоапсиса скорость совпала со скоростью круговой орбиты. | (EN) so that when passing apoapsis the speed matches circular orbital speed.
                     double maxAccel = CalculateMaxAcceleration();
+                    // (RU) Если двигатели ещё не горят (начало фазы), используем кэшированное значение | (EN) If engines aren't burning yet (start of phase), use cached value
+                    if (maxAccel < 0.001 && cachedMaxAcceleration > 0.001)
+                        maxAccel = cachedMaxAcceleration;
                     double rawTimeToApoCirc = GetTimeToApoapsis();
                     double timeToApoCirc = rawTimeToApoCirc;
                     if (double.IsInfinity(timeToApoCirc) || double.IsNaN(timeToApoCirc)) timeToApoCirc = 2.0;
                     timeToApoCirc = Math.Max(-5.0, Math.Min(20.0, timeToApoCirc));
                     double currentRadiusCirc = rocket.location.Value.Radius;
                     double horizontalSpeedCirc = GetHorizontalSpeed();
-                    double targetOrbitalSpeedCirc = CalculateTargetOrbitalSpeed(currentRadiusCirc);
-
-                    // (RU) v_circ = sqrt(mu / r). В SFS здесь используется planet.mass как mu. | (EN) v_circ = sqrt(mu / r). In SFS planet.mass is used as mu.
+                    // (RU) v_circ = sqrt(mu / r_apo). Целимся в круговую скорость на реальном апогее, а не на целевом радиусе. | (EN) Target circular speed at actual apoapsis, not vis-viva speed for the target SMA.
                     double mu = rocket.location.planet.Value.mass;
-                    double rApo = Math.Max(apoapsis, 1.0);
-                    double vCirc = Math.Sqrt(mu / rApo);
-                    double dvErrorNow = vCirc - velocity; // (RU) нужно набрать, если положительное | (EN) positive => need to gain
+                    double rApo = Math.Max(apoapsis, rocket.location.planet.Value.Radius + 1.0);
+                    double targetOrbitalSpeedCirc = Math.Sqrt(mu / rApo);
+                    double dvErrorNow = targetOrbitalSpeedCirc - velocity; // (RU) нужно набрать, если положительное | (EN) positive => need to gain
 
                     // (RU) Дополнительно: если перицентр ниже цели, продолжаем гореть даже если dvErrorNow ~ 0, | (EN) Additionally: if periapsis is below the target, continue burning even if dvErrorNow ~ 0,
                     // (RU) потому что именно это “добивает” перицентр и повышает точность круговой орбиты. | (EN) because this is what "finishes" the periapsis and improves circularization accuracy.
@@ -845,6 +864,7 @@ namespace RevolutionlessAutopilot
             }
         }
 
+        // Wrong formula
         private double CalculateTargetOrbitalSpeed(double radius)
         {
             double safeRadius = Math.Max(radius, rocket.location.planet.Value.Radius + 1.0);
@@ -919,9 +939,13 @@ namespace RevolutionlessAutopilot
             double mass = rocket.mass.GetMass();
             if (mass <= 0.00001)
                 return 0.0;
+            double accel = thrust / mass;
+            // (RU) Сохраняем последнее ненулевое значение — используется когда двигатели не горят (например, в начале циркуляризации) | (EN) Cache last non-zero value — used when engines are not burning (e.g. at start of circularization)
+            if (accel > 0.001)
+                cachedMaxAcceleration = accel;
             if (debug && UnityEngine.Time.frameCount % 60 == 0)
-                Debug.Log($"[Autopilot] Total thrust: {thrust:N1}kN, mass: {mass:F1}t, accel: {thrust / mass:F1}m/s²");
-            return thrust / mass;
+                Debug.Log($"[Autopilot] Total thrust: {thrust:N1}kN, mass: {mass:F1}t, accel: {accel:F1}m/s²");
+            return accel;
         }
 
         private void CheckStaging()
