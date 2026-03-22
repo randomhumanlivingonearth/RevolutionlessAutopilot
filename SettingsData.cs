@@ -12,6 +12,7 @@ namespace RevolutionlessAutopilot
         public float targetOrbitAltitude = 100000f; // (RU) метры | (EN) meters
         public Vector2Int mainWindowPosition = new Vector2Int(-400, -300);
         public Vector2Int ascentWindowPosition = new Vector2Int(-400, 100);
+        public Vector2Int landingWindowPosition = new Vector2Int(-400, -50);
     }
 
     public static class Settings
