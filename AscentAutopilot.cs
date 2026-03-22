@@ -26,9 +26,9 @@ namespace RevolutionlessAutopilot
     {
         private Rocket rocket;
         private AscentState state = AscentState.Idle;
-        private float targetAltitude;          // meters above surface
-        private float requestedTargetAltitude; // final user-requested orbit altitude
-        private double targetRadius;            // target altitude + planet radius
+        private float targetAltitude;          // (RU) метры над поверхностью | (EN) meters above surface
+        private float requestedTargetAltitude; // (RU) окончательная пользовательская запрошенная высота орбиты | (EN) final user-requested orbit altitude
+        private double targetRadius;            // (RU) целевая высота + радиус планеты | (EN) target altitude + planet radius
         private bool pendingTransferBurn;
 
         private const float MIN_TARGET_ALTITUDE = 1000f;
@@ -39,35 +39,35 @@ namespace RevolutionlessAutopilot
         private const double COAST_TO_CIRC_BURN_BUFFER = 0.35;
         private const float THROTTLE_SNAP_THRESHOLD = 0.01f;
 
-        // Параметры подъёма (жёстко заданы)
-        private const float PITCH_START_ALTITUDE = 100f;      // начинаем поворот на 100 м
-        private const float TURN_END_ANGLE = 0f;              // заканчиваем горизонтально (0°)
-        private const float TURN_SHAPE_EXPONENT = 0.8f;        // степень для кривой поворота
-        private const float MIN_PITCH = 5f;                    // минимальный угол тангажа
+        // (RU) Параметры подъёма (жёстко заданы) | (EN) Lifting parameters (hard-coded)
+        private const float PITCH_START_ALTITUDE = 100f;      // (RU) начинаем поворот на 100 м | (EN) we begin the 100 m turn
+        private const float TURN_END_ANGLE = 0f;              // (RU) заканчиваем горизонтально (0°) | (EN) we finish horizontally (0°)
+        private const float TURN_SHAPE_EXPONENT = 0.8f;        // (RU) степень для кривой поворота | (EN) degree for the turning curve
+        private const float MIN_PITCH = 5f;                    // (RU) минимальный угол тангажа | (EN) minimum pitch angle
         private const double TURN_TARGET_ALTITUDE_FACTOR = 0.45;
         private const double TURN_ATMOSPHERE_ALTITUDE_FACTOR = 0.9;
         private const double TURN_NO_ATMOSPHERE_ALTITUDE_FACTOR = 0.35;
         private const double TURN_MIN_END_ALTITUDE = 2500.0;
 
-        // Параметры управления орбитой
-        private const double APOAPSIS_TARGET_MARGIN = 100;     // отключаем двигатели при достижении цели с недолётом 100 м (для первой фазы)
-        private const double PERIAPSIS_TOLERANCE = 250;       // допустимая погрешность для периапсиса (250 м)
-        private const double CORRECTION_GAIN = 40000;          // коэффициент преобразования ошибки периапсиса в градусы
-        private const float PERI_MAX_PITCH_CORRECTION = 2.0f;  // чтобы не уводить слишком далеко от prograde
-        private const float APO_MAX_PITCH_CORRECTION = 5.0f;   // небольшая коррекция, но без жёсткого насыщения
-        private const double APOAPSIS_OVER_CORRECTION_GAIN = 20000; // для коррекции по апогею (больше => мягче)
-        private const double APO_THROTTLE_REDUCTION_START = 250; // начинаем снижать тягу при заметном превышении апогея
-        private const double APO_THROTTLE_REDUCTION_END = 1500;  // снижать плавнее, чтобы не сорвать набор delta-V
-        private const float APO_MIN_THROTTLE_FACTOR = 0.25f;     // минимальная доля тяги, чтобы продолжить набор delta-V
-        private const double COAST_TO_CIRC_THRESHOLD = 2.5;    // начинаем циркуляризацию за 2.5 секунды до апогея
-        private const double COAST_TO_CIRC_DISTANCE = 200;     // или за 200 м по высоте
-        private const double CIRCULARIZE_MAX_DURATION = 90.0; // страховка от бесконечного горения
-        private const float CIRCULARIZE_PITCH_UP_BIAS = 0.6f;        // небольшой bias “вверх”
-        private const float CIRCULARIZE_PITCH_UP_BIAS_IF_APO_HIGH = 1.2f; // усиление, если апогей уже выше цели
-        private const double CIRCULARIZE_VEL_TOLERANCE = 2.0;          // m/s, “почти круговая скорость”
-        private const double PERI_THROTTLE_GAIN = 120000.0;            // meters -> throttle (больше => слабее)
-        private const float PERI_THROTTLE_MIN = 0.0f;                  // даем тяге падать почти до нуля для точной доводки
-        private const double CIRCULARIZE_NEAR_APO_DISTANCE = 5000.0;  // м: доводим перицентр только очень близко к апогею
+        // (RU) Параметры управления орбитой | (EN) Orbit control parameters
+        private const double APOAPSIS_TARGET_MARGIN = 100;     // (RU) отключаем двигатели при достижении цели с недолётом 100 м (для первой фазы) | (EN) We turn off the engines when we reach the target within 100 m (for the first phase)
+        private const double PERIAPSIS_TOLERANCE = 250;       // (RU) допустимая погрешность для периапсиса (250 м) | (EN) permissible error for periapsis (250 m)
+        private const double CORRECTION_GAIN = 40000;          // (RU) коэффициент преобразования ошибки периапсиса в градусы | (EN) conversion factor of periapsis error to degrees
+        private const float PERI_MAX_PITCH_CORRECTION = 2.0f;  // (RU) чтобы не уводить слишком далеко от prograde | (EN) so as not to lead too far away from prograde
+        private const float APO_MAX_PITCH_CORRECTION = 5.0f;   // (RU) небольшая коррекция, но без жёсткого насыщения | (EN) a slight correction, but without hard saturation
+        private const double APOAPSIS_OVER_CORRECTION_GAIN = 20000; // (RU) для коррекции по апогею (больше => мягче) | (EN) for apogee correction (more => softer)
+        private const double APO_THROTTLE_REDUCTION_START = 250; // (RU) начинаем снижать тягу при заметном превышении апогея | (EN) we begin to reduce thrust when the apogee is noticeably exceeded
+        private const double APO_THROTTLE_REDUCTION_END = 1500;  // (RU) снижать плавнее, чтобы не сорвать набор delta-V | (EN) descend more smoothly to avoid disrupting delta-V gain
+        private const float APO_MIN_THROTTLE_FACTOR = 0.25f;     // (RU) минимальная доля тяги, чтобы продолжить набор delta-V | (EN) minimum thrust fraction to continue delta-V gain
+        private const double COAST_TO_CIRC_THRESHOLD = 2.5;    // (RU) начинаем циркуляризацию за 2.5 секунды до апогея | (EN) We begin circularization 2.5 seconds before the apogee.
+        private const double COAST_TO_CIRC_DISTANCE = 200;     // (RU) или за 200 м по высоте | (EN) or 200 m in altitude
+        private const double CIRCULARIZE_MAX_DURATION = 90.0; // (RU) страховка от бесконечного горения | (EN) insurance against endless burning
+        private const float CIRCULARIZE_PITCH_UP_BIAS = 0.6f;        // (RU) небольшой bias “вверх” | (EN) slight upward bias
+        private const float CIRCULARIZE_PITCH_UP_BIAS_IF_APO_HIGH = 1.2f; // (RU) усиление, если апогей уже выше цели | (EN) gain if the apogee is already above the target
+        private const double CIRCULARIZE_VEL_TOLERANCE = 2.0;          // (RU) m/s, “почти круговая скорость” | (EN) m/s, “near circular speed”
+        private const double PERI_THROTTLE_GAIN = 120000.0;            // (RU) meters -> throttle (больше => слабее) | (EN) meters -> throttle (more => weaker)
+        private const float PERI_THROTTLE_MIN = 0.0f;                  // (RU) даем тяге падать почти до нуля для точной доводки | (EN) let the thrust drop to almost zero for fine tuning
+        private const double CIRCULARIZE_NEAR_APO_DISTANCE = 5000.0;  // (RU) м: доводим перицентр только очень близко к апогею | (EN) m: we bring the periapsis only very close to the apogee
         private const double CIRCULARIZE_NEAR_APO_TIME = 8.0;
         private const double CIRCULARIZE_BURN_WINDOW_DISTANCE = 12000.0;
         private const double CIRCULARIZE_BURN_WINDOW_TIME = 14.0;
@@ -91,7 +91,7 @@ namespace RevolutionlessAutopilot
         private Stage currentStage = null;
         private HashSet<Stage> stagingAttempted = new HashSet<Stage>();
         private double actualTurnStartAltitude = 0;
-        private double atmosphereHeight = 0;                   // высота атмосферы текущей планеты
+        private double atmosphereHeight = 0;                   // (RU) высота атмосферы текущей планеты | (EN) the altitude of the current planet's atmosphere
 
         private bool debug = true;
         private int coastLogCounter = 0;
@@ -178,7 +178,7 @@ namespace RevolutionlessAutopilot
             if (!IsActive || rocket == null) return;
             RefreshRuntimeSettings(logTargetChanges: true);
 
-            // Если ступеней не осталось, автопилот не может работать
+            // (RU) Если ступеней не осталось, автопилот не может работать | (EN) If no stages remain, the autopilot cannot operate
             if (rocket.staging.stages.Count == 0)
             {
                 if (debug) Debug.Log("[Autopilot] No stages left, stopping autopilot");
@@ -257,7 +257,7 @@ namespace RevolutionlessAutopilot
                     if (debug && UnityEngine.Time.frameCount % 60 == 0)
                         Debug.Log($"[Autopilot] PitchOver: targetPitch={targetPitch:F1}, progress={turnProgress:F3}, turnEndAlt={turnEndAltitude:F0}m, throttle={throttle:F2}");
 
-                    // Отключаем двигатели при достижении целевого апогея с недолётом 500 м
+                    // (RU) Отключаем двигатели при достижении целевого апогея с недолётом 500 м | (EN) We shut down the engines when we reach the target apogee with a shortfall of 500 m.
                     if (aboveAtmosphere && apoapsis >= targetRadius - APOAPSIS_TARGET_MARGIN)
                     {
                         if (debug) Debug.Log($"[Autopilot] PitchOver -> Coast, apoapsis reached {rawApoapsis:F0}m (alt {apoapsisAltitude:F0}m)");
@@ -277,7 +277,7 @@ namespace RevolutionlessAutopilot
                         Debug.Log($"[Autopilot] Coast: TTA={tta:F2}s, aboveAtmo={aboveAtmosphere}");
                     }
 
-                    // Включаем ускорение времени только если мы выше атмосферы и можно ускорять
+                    // (RU) Включаем ускорение времени только если мы выше атмосферы и можно ускорять | (EN) We turn on time acceleration only if we are above the atmosphere and can accelerate
                     if (aboveAtmosphere && WorldTime.CanTimewarp(false, false))
                     {
                         double timeToApoapsis = GetTimeToApoapsis();
@@ -328,7 +328,7 @@ namespace RevolutionlessAutopilot
                     double coastLeadTime = Math.Max(COAST_TO_CIRC_MIN_LEAD_TIME, estimatedBurnDuration * 0.5 + COAST_TO_CIRC_BURN_BUFFER);
                     double timeToBurnStart = timeToApo - coastLeadTime;
 
-                    // Начинаем циркуляризацию, когда осталось меньше заданного времени ИЛИ расстояние по высоте мало
+                    // (RU) Начинаем циркуляризацию, когда осталось меньше заданного времени ИЛИ расстояние по высоте мало | (EN) We start circularization when less than the specified time remains OR the height distance is small
                     if (((timeToBurnStart <= 0.0) && WorldTime.main.timewarpSpeed <= 1) || distanceToApo < COAST_TO_CIRC_DISTANCE)
                     {
                         WorldTime.main.StopTimewarp(false);
@@ -336,8 +336,8 @@ namespace RevolutionlessAutopilot
                         CutEngines();
                         state = AscentState.Circularize;
                         deltaVTarget = requiredDeltaV;
-                        // Estimate how long we need to burn. Depending on SFS internals, thrust/accel values can briefly be 0
-                        // right after we cut engines, so keep a safe fallback duration.
+                        // (RU) Оцениваем, сколько нужно гореть. Внутри SFS значения тяги/ускорения могут кратковременно равняться нулю. | (EN) Estimate how long we need to burn. Depending on SFS internals, thrust/accel values can briefly be 0.
+                        // (RU) Это может случиться сразу после отключения двигателей, поэтому используем запасной запас времени. | (EN) This can happen right after we cut engines, so keep a safe fallback duration.
                         double mass = rocket.mass.GetMass();
                         double acceleration = CalculateMaxAcceleration();
                         if (acceleration <= 0.00001 && mass > 0.0)
@@ -348,7 +348,7 @@ namespace RevolutionlessAutopilot
                         burnDuration = (acceleration > 0.00001) ? (deltaVTarget / acceleration) : estimatedBurnDuration;
                         if (burnDuration <= 0.0 && deltaVTarget > 0.0)
                         {
-                            burnDuration = 10.0; // fallback seconds
+                            burnDuration = 10.0; // (RU) запасные секунды | (EN) fallback seconds
                             if (debug) Debug.Log($"[Autopilot] Acceleration estimate was 0; using fallback burnDuration={burnDuration:F1}s");
                         }
                         circularizeStartWorldTime = WorldTime.main.worldTime;
@@ -357,7 +357,7 @@ namespace RevolutionlessAutopilot
                         if (debug)
                             Debug.Log($"[Autopilot] Required ΔV: {requiredDeltaV:F1}m/s, using ΔVtarget={deltaVTarget:F1}m/s, burn duration: {burnDuration:F1}s, horizVel={horizontalSpeed:F1}m/s, targetVel={targetOrbitalSpeed:F1}m/s, maxAccel est={CalculateMaxAcceleration():F2}m/s²");
 
-                        // If we somehow already have enough speed for circular orbit at target radius, don't burn.
+                        // (RU) Если по тем или иным причинам у нас уже достаточно скорости для круговой орбиты на целевом радиусе, не горим. | (EN) If we somehow already have enough speed for circular orbit at target radius, don't burn.
                         if (deltaVTarget <= 0.0001)
                         {
                             CutEngines();
@@ -370,7 +370,7 @@ namespace RevolutionlessAutopilot
                     break;
 
                 case AscentState.Circularize:
-                    // Основное направление – prograde (по вектору скорости) с коррекциями
+                    // (RU) Основное направление – prograde (по вектору скорости) с коррекциями | (EN) The main direction is prograde (along the velocity vector) with corrections
                     float targetPitchCirc = rocket.GetRotation();
                     bool orientationReady = false;
                     if (rocket.location.velocity.Value.magnitude > 0.1)
@@ -382,9 +382,9 @@ namespace RevolutionlessAutopilot
                         double periError = targetRadius - periapsis;
                         bool needMajorPeriRaiseForPitch = periError > Math.Max(MAJOR_PERIAPSIS_RAISE_MIN_ERROR, Math.Min(50000.0, targetAltitude * 0.05));
                         targetPitchCirc = Mathf.LerpAngle(progradeAngle, horizontalAngle, needMajorPeriRaiseForPitch ? 0.8f : 0.35f);
-                        double apoError = targetRadius - apoapsis; // отрицательное, если апогей выше цели
+                        double apoError = targetRadius - apoapsis; // (RU) отрицательное, если апогей выше цели | (EN) negative if the apogee is above the target
 
-                        // Коррекция по перицентру (симметрично: поднимаем нос если ниже цели, опускаем если выше)
+                        // (RU) Коррекция по перицентру (симметрично: поднимаем нос если ниже цели, опускаем если выше) | (EN) Pericenter correction (symmetrically: raise the nose if it is below the target, lower it if it is above)
                         if (Math.Abs(periError) > PERIAPSIS_TOLERANCE)
                         {
                             float periCorr = Mathf.Clamp((float)(periError / CORRECTION_GAIN), -PERI_MAX_PITCH_CORRECTION, PERI_MAX_PITCH_CORRECTION);
@@ -393,17 +393,17 @@ namespace RevolutionlessAutopilot
                                 Debug.Log($"[Autopilot] Peri correction={periCorr:F2}° (periErr={periError:F0}m)");
                         }
 
-                        // Коррекция по апогею:
-                        // apoError = targetRadius - apoapsis; отрицательно => апогей ВЫШЕ цели.
-                        // Важно: знак в старой версии приводил к тому, что коррекция почти всегда "обнулялась" clamping'ом.
-                        double apoOvershoot = apoapsis - targetRadius; // положительно => апогей выше цели
+                        // (RU) Коррекция по апогею: | (EN) Apogee correction:
+                        // (RU) apoError = targetRadius - apoapsis; отрицательно => апогей ВЫШЕ цели. | (EN) apoError = targetRadius - apoapsis; negative => apoapsis is ABOVE target.
+                        // (RU) Важно: знак в старой версии приводил к тому, что коррекция почти всегда "обнулялась" clamping'ом. | (EN) Important: in the old version, the sign resulted in the correction almost always being "zeroed out" by clamping.
+                        double apoOvershoot = apoapsis - targetRadius; // (RU) положительно => апогей выше цели | (EN) positive => apogee above the target
                         if (Math.Abs(apoOvershoot) > APOAPSIS_TARGET_MARGIN)
                         {
                             double apoCorrectionGain = needMajorPeriRaiseForPitch ? MAJOR_APOAPSIS_CORRECTION_GAIN : APOAPSIS_OVER_CORRECTION_GAIN;
                             float apoCorrectionLimit = needMajorPeriRaiseForPitch ? MAJOR_APOAPSIS_MAX_PITCH_CORRECTION : APO_MAX_PITCH_CORRECTION;
                             float apoCorrMag = Mathf.Clamp((float)(Math.Abs(apoOvershoot) / apoCorrectionGain), 0f, apoCorrectionLimit);
-                            // Если апогей УЖЕ выше цели, нам нужно "сдерживать" его,
-                            // поэтому при overshoot направляем коррекцию в противоположную сторону.
+                            // (RU) Если апогей УЖЕ выше цели, нам нужно "сдерживать" его, | (EN) If the apogee is already above the target, we need to restrain it,
+                            // (RU) поэтому при overshoot направляем коррекцию в противоположную сторону. | (EN) therefore for an overshoot we steer the correction in the opposite direction.
                             if (apoOvershoot > 0)
                                 targetPitchCirc -= apoCorrMag;
                             else
@@ -413,9 +413,9 @@ namespace RevolutionlessAutopilot
                                 Debug.Log($"[Autopilot] Apo pitch correction mag={apoCorrMag:F2}°, overshoot={apoOvershoot:F0}m");
                         }
 
-                        // Небольшой bias “вверх” чтобы снизить склонность к уходу в баллистическую траекторию.
-                        // Если апогей уже превышает цель, делаем bias сильнее.
-                        double apoOvershootForBias = apoapsis - targetRadius; // положительно => апогей выше цели
+                        // (RU) Небольшой bias “вверх” чтобы снизить склонность к уходу в баллистическую траекторию. | (EN) Small upward bias to reduce tendency to fall into a ballistic trajectory.
+                        // (RU) Если апогей уже превышает цель, делаем bias сильнее. | (EN) If the apogee already exceeds the target, make the bias stronger.
+                        double apoOvershootForBias = apoapsis - targetRadius; // (RU) положительно => апогей выше цели | (EN) positive => apogee above the target
                         float pitchBias = CIRCULARIZE_PITCH_UP_BIAS;
                         if (needMajorPeriRaiseForPitch || apoOvershootForBias > APO_THROTTLE_REDUCTION_START)
                             pitchBias = 0f;
@@ -426,9 +426,9 @@ namespace RevolutionlessAutopilot
                         orientationReady = IsPitchSettled(targetPitchCirc);
                     }
 
-                    // Управление тягой:
-                    // целимся не в "заранее вычисленный" delta-V, а в скорость на текущем апоапсисе,
-                    // чтобы при прохождении апоапсиса скорость совпала со скоростью круговой орбиты.
+                    // (RU) Управление тягой: | (EN) Throttle control:
+                    // (RU) целимся не в "заранее вычисленный" delta-V, а в скорость на текущем апоапсисе, | (EN) we target not a precomputed delta-V but the speed at the current apoapsis,
+                    // (RU) чтобы при прохождении апоапсиса скорость совпала со скоростью круговой орбиты. | (EN) so that when passing apoapsis the speed matches circular orbital speed.
                     double maxAccel = CalculateMaxAcceleration();
                     double rawTimeToApoCirc = GetTimeToApoapsis();
                     double timeToApoCirc = rawTimeToApoCirc;
@@ -438,15 +438,15 @@ namespace RevolutionlessAutopilot
                     double horizontalSpeedCirc = GetHorizontalSpeed();
                     double targetOrbitalSpeedCirc = CalculateTargetOrbitalSpeed(currentRadiusCirc);
 
-                    // v_circ = sqrt(mu / r). В SFS здесь используется planet.mass как mu.
+                    // (RU) v_circ = sqrt(mu / r). В SFS здесь используется planet.mass как mu. | (EN) v_circ = sqrt(mu / r). In SFS planet.mass is used as mu.
                     double mu = rocket.location.planet.Value.mass;
                     double rApo = Math.Max(apoapsis, 1.0);
                     double vCirc = Math.Sqrt(mu / rApo);
-                    double dvErrorNow = vCirc - velocity; // нужно набрать, если положительное
+                    double dvErrorNow = vCirc - velocity; // (RU) нужно набрать, если положительное | (EN) positive => need to gain
 
-                    // Дополнительно: если перицентр ниже цели, продолжаем гореть даже если dvErrorNow ~ 0,
-                    // потому что именно это “добивает” перицентр и повышает точность круговой орбиты.
-                    double periErrForThrottle = targetRadius - periapsis; // >0 => перицентр ниже цели
+                    // (RU) Дополнительно: если перицентр ниже цели, продолжаем гореть даже если dvErrorNow ~ 0, | (EN) Additionally: if periapsis is below the target, continue burning even if dvErrorNow ~ 0,
+                    // (RU) потому что именно это “добивает” перицентр и повышает точность круговой орбиты. | (EN) because this is what "finishes" the periapsis and improves circularization accuracy.
+                    double periErrForThrottle = targetRadius - periapsis; // (RU) >0 => перицентр ниже цели | (EN) >0 => periapsis below target
                     bool needMajorPeriRaise = periErrForThrottle > Math.Max(MAJOR_PERIAPSIS_RAISE_MIN_ERROR, Math.Min(50000.0, targetAltitude * 0.05));
                     float periThrottle = 0f;
                     double altitudeToApoCirc = apoapsisAltitude - altitude;
@@ -466,12 +466,12 @@ namespace RevolutionlessAutopilot
                     dvErrorNow = targetOrbitalSpeedCirc - horizontalSpeedCirc;
                     if (maxAccel > 0.00001 && dvErrorNow > 0.0 && rawTimeToApoCirc > -1.0 && inBurnWindow)
                     {
-                        // Распределяем нужный прирост скорости на ближайшее окно до апогея.
+                        // (RU) Распределяем нужный прирост скорости на ближайшее окно до апогея. | (EN) Distribute the required delta-V over the nearest window until apoapsis.
                         double desiredTime = Math.Max(Math.Abs(rawTimeToApoCirc), 0.5);
                         double desiredAccel = dvErrorNow / desiredTime;
                         circThrottle = Mathf.Clamp01((float)(desiredAccel / maxAccel));
 
-                        // Если апогей уже "уехал" выше цели, чуть притормаживаем, но не ломаем burn полностью.
+                        // (RU) Если апогей уже "уехал" выше цели, чуть притормаживаем, но не ломаем burn полностью. | (EN) If apoapsis has already gone above the target, slightly throttle down but don't break the burn completely.
                         double apoOvershoot = apoapsis - targetRadius;
                         if (apoOvershoot > APO_THROTTLE_REDUCTION_START)
                         {
@@ -533,7 +533,7 @@ namespace RevolutionlessAutopilot
 
                     SetThrottle(finalThrottle);
 
-                    // Завершение, когда перицентр достиг цели (допуск 1 км)
+                    // (RU) Завершение, когда перицентр достиг цели (допуск 1 км) | (EN) Finish when periapsis reaches the target (tolerance ~1 km)
                     closeEnoughPeriTolerance = Math.Max(3000.0, Math.Min(8000.0, targetAltitude * 0.02));
                     closeEnoughApoTolerance = Math.Max(2500.0, Math.Min(25000.0, targetAltitude * 0.03));
                     bool orbitWithinTolerance = Math.Abs(periapsis - targetRadius) < PERIAPSIS_TOLERANCE && Math.Abs(targetOrbitalSpeedCirc - horizontalSpeedCirc) <= CIRCULARIZE_VEL_TOLERANCE;
@@ -552,7 +552,7 @@ namespace RevolutionlessAutopilot
                     }
                     else
                     {
-                        // Защита от зависания управления
+                        // (RU) Защита от зависания управления | (EN) Safeguard against control hangs
                         double circElapsed = WorldTime.main.worldTime - circularizeEntryWorldTime;
                         if (circElapsed > CIRCULARIZE_MAX_DURATION)
                         {
@@ -715,7 +715,7 @@ namespace RevolutionlessAutopilot
 
         private void CutEngines() => SetThrottle(0f);
 
-        // Динамический расчёт тяги на основе расстояния до цели (для фазы подъёма)
+        // (RU) Динамический расчёт тяги на основе расстояния до цели (для фазы подъёма) | (EN) Dynamic thrust calculation based on distance to target (for the ascent phase)
         private float CalculateThrottleDynamic(double currentValue, double targetRadius)
         {
             if (currentValue <= 0) return 1f;

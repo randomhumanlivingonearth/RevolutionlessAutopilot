@@ -1,4 +1,4 @@
-// Settings.cs - упрощено, только целевая орбита
+// Settings.cs - (RU) упрощено, только целевая орбита | (EN) simplified, target orbit only
 using System;
 using SFS.IO;
 using SFS.Parsers.Json;
@@ -9,7 +9,7 @@ namespace RevolutionlessAutopilot
     [Serializable]
     public class SettingsData
     {
-        public float targetOrbitAltitude = 100000f; // meters
+        public float targetOrbitAltitude = 100000f; // (RU) метры | (EN) meters
         public Vector2Int mainWindowPosition = new Vector2Int(-400, -300);
         public Vector2Int ascentWindowPosition = new Vector2Int(-400, 100);
     }

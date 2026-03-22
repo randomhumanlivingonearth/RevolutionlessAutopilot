@@ -1,4 +1,4 @@
-// AutopilotUpdater.cs - без изменений
+// AutopilotUpdater.cs - (RU) без изменений | (EN) no changes
 using SFS.UI;
 using SFS.World;
 using UnityEngine;

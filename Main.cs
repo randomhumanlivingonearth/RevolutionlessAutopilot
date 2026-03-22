@@ -12,7 +12,7 @@ namespace RevolutionlessAutopilot
     {
         public override string ModNameID => "RevolutionlessAutopilot";
         public override string DisplayName => "Revolutionless Autopilot";
-        public override string Author => "randomhumanlivingonearth";
+        public override string Author => "randomhumanlivingonearth and RedFox-AI51";
         public override string MinimumGameVersionNecessary => "1.5.10.2";
         public override string ModVersion => "v0.1.0";
         public override string Description => "Adds an autopilot that will execute some basic maneuvers fully autonomously.";
