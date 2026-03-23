@@ -42,6 +42,12 @@ namespace RevolutionlessAutopilot
         private static TextInput targetAltitudeInput;
         private static string pendingTargetOrbitText;
 
+        // (RU) Режим разработчика — скрывает посадку до ввода кода | (EN) Dev mode — hides landing until unlock code is entered
+        private static bool devModeEnabled = false;
+        private const string DEV_UNLOCK_COMMAND = "/DEV MODE123";
+        private static SFS.UI.ModGUI.Button landingButton;
+        private static Container consoleRow;
+
         // (RU) Показать / скрыть всё GUI | (EN) Show / hide all GUI
         public static void ShowGUI()
         {
@@ -59,7 +65,19 @@ namespace RevolutionlessAutopilot
             mainWindow.CreateLayoutGroup(Type.Vertical, TextAnchor.MiddleCenter, 10f);
 
             Builder.CreateButton(mainWindow, 280, 40, 0, 0, ToggleAscentWindow, "Ascent");
-            // Builder.CreateButton(mainWindow, 280, 40, 0, 0, ToggleLandingWindow, "Landing");
+
+            // (RU) Кнопка посадки скрыта до включения режима разработчика | (EN) Landing button hidden until dev mode is unlocked
+            landingButton = Builder.CreateButton(mainWindow, 280, 40, 0, 0, ToggleLandingWindow, "Landing");
+            landingButton.gameObject.SetActive(devModeEnabled);
+
+            // (RU) Консоль разработчика | (EN) Developer console — type the unlock command and press Enter
+            consoleRow = Builder.CreateContainer(mainWindow);
+            consoleRow.CreateLayoutGroup(Type.Horizontal, TextAnchor.MiddleLeft, 4f);
+            Builder.CreateLabel(consoleRow, 20, 24, 0, 0, ">");
+            var consoleInput = Builder.CreateTextInput(consoleRow, 250, 28, 0, 0, "");
+            consoleInput.field.characterValidation = TMP_InputField.CharacterValidation.None;
+            consoleInput.field.onEndEdit.AddListener(OnConsoleCommand);
+            consoleRow.gameObject.SetActive(!devModeEnabled);
 
             // (RU) Окно подъёма | (EN) Ascent window
             ascentHolder = Builder.CreateHolder(Builder.SceneToAttach.CurrentScene, "AutopilotAscentHolder");
@@ -92,12 +110,12 @@ namespace RevolutionlessAutopilot
             landingWindow.Active = false;
 
             // (RU) Временно скрываем окно посадки до тех пор, пока эта функция не будет реализована должным образом. | (EN) Temporarily hiding landing window until it's implemented properly
-            // BuildLandingWindow();
+            BuildLandingWindow();
 
-            // // (RU) Сохраняем позиции при перетаскивании | (EN) Save positions on drag
-            // mainWindow.gameObject.GetComponent<DraggableWindowModule>().OnDropAction += SaveMainWindowPosition;
-            // ascentWindow.gameObject.GetComponent<DraggableWindowModule>().OnDropAction += SaveAscentWindowPosition;
-            // landingWindow.gameObject.GetComponent<DraggableWindowModule>().OnDropAction += SaveLandingWindowPosition;
+            // (RU) Сохраняем позиции при перетаскивании | (EN) Save positions on drag
+            mainWindow.gameObject.GetComponent<DraggableWindowModule>().OnDropAction += SaveMainWindowPosition;
+            ascentWindow.gameObject.GetComponent<DraggableWindowModule>().OnDropAction += SaveAscentWindowPosition;
+            landingWindow.gameObject.GetComponent<DraggableWindowModule>().OnDropAction += SaveLandingWindowPosition;
         }
 
         public static void HideGUI()
@@ -145,6 +163,26 @@ namespace RevolutionlessAutopilot
 
             Builder.CreateButton(ascentWindow, 220, 34, 0, 0, ResetTargetOrbitKm, "Reset (Atmo + 5 km)");
             Builder.CreateButton(ascentWindow, 220, 40, 0, 0, ToggleAscentAutopilot, "Start Ascent");
+        }
+
+        // (RU) Команды консоли разработчика | (EN) Developer console commands
+        private static void OnConsoleCommand(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return;
+
+            if (input.Trim() == DEV_UNLOCK_COMMAND)
+            {
+                devModeEnabled = true;
+                if (landingButton != null)
+                    landingButton.gameObject.SetActive(true);
+                if (consoleRow != null)
+                    consoleRow.gameObject.SetActive(false);
+                MsgDrawer.main.Log("[DEV] Landing autopilot unlocked.");
+            }
+            else
+            {
+                MsgDrawer.main.Log($"Unknown command: {input.Trim()}");
+            }
         }
 
         // (RU) Построение окна посадки | (EN) Build landing window

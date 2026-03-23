@@ -228,8 +228,22 @@ namespace RevolutionlessAutopilot
                     if (periAlt <= DEORBIT_PERIAPSIS_TARGET + DEORBIT_PERIAPSIS_TOLERANCE)
                     {
                         CutEngines();
-                        if (debug) Debug.Log($"[LandingAutopilot] Deorbit complete, periAlt={periAlt:F0}m -> Reentry");
-                        state = hasAtmosphere ? LandingState.Reentry : LandingState.Flip;
+                        if (debug) Debug.Log($"[LandingAutopilot] Deorbit complete, periAlt={periAlt:F0}m -> Flip");
+                        state = LandingState.Flip;
+                        flipComplete = false;
+                        break;
+                    }
+
+                    // (RU) Аварийный выход: если мы уже слишком низко для продолжения деорбиты — переходим к посадке.
+                    // (EN) Emergency exit: if we're already too low to keep deorbiting, go straight to landing.
+                    // (EN) This handles the case where the autopilot is started on an already-descending trajectory,
+                    //      or where the periapsis target is just barely missed and the craft is close to the surface.
+                    if (altitude < DEORBIT_MIN_ALTITUDE)
+                    {
+                        CutEngines();
+                        if (debug) Debug.Log($"[LandingAutopilot] Deorbit altitude cutoff at {altitude:F0}m (periAlt={periAlt:F0}m) -> Flip");
+                        state = LandingState.Flip;
+                        flipComplete = false;
                         break;
                     }
 
@@ -312,18 +326,24 @@ namespace RevolutionlessAutopilot
                 }
 
                 // ──────────────────────────────────────────────
-                // (RU) РАЗВОРОТ: поворачиваем двигатели к земле | (EN) FLIP: rotate engines toward ground
+                // (RU) РАЗВОРОТ: разворот к ретрограду (без атмосферы) или к земле (после торможения атмосферой)
+                // (EN) FLIP: rotate to retrograde (no atmosphere) or straight-down (post-aerobrake)
                 // ──────────────────────────────────────────────
                 case LandingState.Flip:
                 {
                     CutEngines();
-                    SetPitch(FLIP_TARGET_PITCH);
 
-                    float pitchError = Mathf.Abs(NormalizeAngle(FLIP_TARGET_PITCH - rocket.GetRotation()));
+                    // (RU) Без атмосферы скорость всё ещё орбитальная — целимся в ретроград, а не вниз.
+                    // (EN) Without atmosphere speed is still orbital — target retrograde, not straight down.
+                    // (EN) The SuicideBurn state will blend toward straight-down as horizontal speed bleeds off.
+                    float flipTarget = hasAtmosphere ? FLIP_TARGET_PITCH : GetRetrogradeAngle();
+                    SetPitch(flipTarget);
+
+                    float pitchError = Mathf.Abs(NormalizeAngle(flipTarget - rocket.GetRotation()));
                     flipComplete = pitchError <= FLIP_PITCH_TOLERANCE;
 
                     if (debug && UnityEngine.Time.frameCount % 30 == 0)
-                        Debug.Log($"[LandingAutopilot] Flip: pitchError={pitchError:F1}°, complete={flipComplete}");
+                        Debug.Log($"[LandingAutopilot] Flip: target={flipTarget:F1}°, pitchError={pitchError:F1}°, complete={flipComplete}");
 
                     if (flipComplete)
                     {
@@ -345,8 +365,25 @@ namespace RevolutionlessAutopilot
                 // ──────────────────────────────────────────────
                 case LandingState.SuicideBurn:
                 {
-                    // (RU) Всегда держим двигатели вниз | (EN) Always hold engines down
-                    SetPitch(FLIP_TARGET_PITCH);
+                    // (RU) Ориентация: ретроград пока есть горизонтальная скорость, плавный переход к -90° при снижении.
+                    // (EN) Attitude: hold retrograde while horizontal speed is significant, blend toward -90° as it drops.
+                    // (EN) This cancels orbital velocity correctly on airless bodies, then transitions to a
+                    //      vertical descent for the final soft-landing phase.
+                    double horizontalSpeed = GetHorizontalSpeed();
+                    float burnPitch;
+                    if (speed > 0.1)
+                    {
+                        // (RU) t=0 → полный ретроград; t=1 → прямо вниз. Переход начинается когда горизонтальная << вертикальная.
+                        // (EN) t=0 → full retrograde; t=1 → straight down. Blend starts when horizontal << vertical.
+                        float blendT = Mathf.Clamp01((float)(Math.Abs(verticalSpeed) / speed) - 0.3f) / 0.7f;
+                        float retrograde = GetRetrogradeAngle();
+                        burnPitch = Mathf.LerpAngle(retrograde, FLIP_TARGET_PITCH, blendT);
+                    }
+                    else
+                    {
+                        burnPitch = FLIP_TARGET_PITCH;
+                    }
+                    SetPitch(burnPitch);
 
                     // (RU) Проверка посадки | (EN) Check for touchdown
                     if (altitude < TOUCHDOWN_ALTITUDE_THRESHOLD && Math.Abs(verticalSpeed) < TOUCHDOWN_SPEED_THRESHOLD)
@@ -369,9 +406,12 @@ namespace RevolutionlessAutopilot
 
                     float finalThrottle;
 
-                    if (altitude < SOFT_LANDING_ALTITUDE)
+                    if (altitude < SOFT_LANDING_ALTITUDE && Math.Abs(horizontalSpeed) < 5.0)
                     {
                         // (RU) Режим мягкой посадки: ПИД по вертикальной скорости | (EN) Soft landing: PID on vertical speed
+                        // (RU) Входим только когда горизонтальная скорость почти погашена (<5 м/с).
+                        // (EN) Only enter when horizontal speed is nearly killed (<5 m/s),
+                        //      otherwise the retrograde burn above keeps running to kill it first.
                         double targetVertSpeed = -SOFT_LANDING_TARGET_SPEED;
                         double speedError = verticalSpeed - targetVertSpeed; // (RU) положительно => падаем быстрее цели | (EN) positive => falling faster than target
 
@@ -381,7 +421,7 @@ namespace RevolutionlessAutopilot
                         finalThrottle = Mathf.Clamp((float)(gravComp + pTerm), SUICIDE_BURN_MIN_THROTTLE, 1f);
 
                         if (debug && UnityEngine.Time.frameCount % 30 == 0)
-                            Debug.Log($"[LandingAutopilot] SoftLanding: alt={altitude:F0}m, vspeed={verticalSpeed:F1}m/s, throttle={finalThrottle:F2}");
+                            Debug.Log($"[LandingAutopilot] SoftLanding: alt={altitude:F0}m, vspeed={verticalSpeed:F1}m/s, hSpeed={horizontalSpeed:F1}m/s, throttle={finalThrottle:F2}");
                     }
                     else
                     {
@@ -391,10 +431,15 @@ namespace RevolutionlessAutopilot
 
                         if (shouldIgnite)
                         {
-                            // (RU) Дроссель пропорционален отношению скорости к максимальному ускорению | (EN) Throttle proportional to speed vs max acceleration
+                            // (RU) Жжём на полную тягу пока скорость не мала. Формула speed²/(2*alt) давала слишком малую тягу.
+                            // (EN) Burn at full throttle until speed is low. The old speed²/(2*alt) formula produced
+                            //      throttle that ramped DOWN as speed dropped, causing under-burn and late ignition feeling.
+                            //      Instead: full throttle until speed is nearly zero, then gravity compensation only.
                             double maxAccel = CalculateMaxAcceleration();
-                            double neededAccel = (speed * speed) / (2.0 * Math.Max(altitude, 1.0));
-                            finalThrottle = Mathf.Clamp((float)(neededAccel / Math.Max(maxAccel, 0.001)), SUICIDE_BURN_MIN_THROTTLE, 1f);
+                            double gravComp = localGravity / Math.Max(maxAccel, 0.001);
+                            // (RU) Плавно переходим к гравкомпенсации по мере уменьшения скорости | (EN) Blend toward gravity compensation as speed drops
+                            float speedFraction = Mathf.Clamp01((float)(speed / 30.0)); // full throttle above 30 m/s, blend below
+                            finalThrottle = Mathf.Clamp((float)(speedFraction + (1.0 - speedFraction) * gravComp), SUICIDE_BURN_MIN_THROTTLE, 1f);
                         }
                         else
                         {
@@ -402,7 +447,7 @@ namespace RevolutionlessAutopilot
                         }
 
                         if (debug && UnityEngine.Time.frameCount % 30 == 0)
-                            Debug.Log($"[LandingAutopilot] SuicideBurn: alt={altitude:F0}m, burnAlt={burnAlt:F0}m, speed={speed:F1}m/s, throttle={finalThrottle:F2}");
+                            Debug.Log($"[LandingAutopilot] SuicideBurn: alt={altitude:F0}m, burnAlt={burnAlt:F0}m, speed={speed:F1}m/s, hSpeed={horizontalSpeed:F1}m/s, pitch={burnPitch:F1}°, throttle={finalThrottle:F2}");
                     }
 
                     SetThrottle(finalThrottle);
@@ -423,7 +468,12 @@ namespace RevolutionlessAutopilot
         // (EN) Where v = speed, a = engine acceleration, g = local gravity
         private double CalculateSuicideBurnAltitude(double speed, double verticalSpeed)
         {
-            double effectiveSpeed = Math.Abs(verticalSpeed) > 0.1 ? Math.Abs(verticalSpeed) : speed;
+            // (RU) Используем полную скорость: нужно погасить ВСЮ скорость (горизонтальную + вертикальную).
+            // (EN) Always use total speed: we need to cancel ALL velocity (horizontal + vertical),
+            //      not just vertical. On airless bodies from orbit, vertical speed is tiny (~23 m/s)
+            //      but orbital speed is large (~333 m/s) — using vertical speed alone gives a burn
+            //      altitude of ~9 m instead of the ~2000 m actually needed.
+            double effectiveSpeed = speed;
             double maxAccel = CalculateMaxAcceleration();
             double netDecel = maxAccel - localGravity;
 
