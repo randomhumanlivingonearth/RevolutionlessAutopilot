@@ -1,0 +1,31 @@
+Issue:
+ - the apoapsis was at the target height, was behind the rocket and the rocket is on an impact trajectory (periapsis zero).
+
+Solution:
+ - change the algorithm so avoid the apoapsis being behind the rocket.
+
+Files involved:
+ - ./AscentAutopilot.cs
+
+Patch applied:
+ - Added safety checks in `AscentAutopilot.cs` `PitchOver -> Coast` transition:
+	 - require the apoapsis to be ahead (`GetTimeToApoapsis() > 0.5`) before cutting engines
+	 - require `periapsisAltitude > PERIAPSIS_TOLERANCE` to avoid cutting when periapsis is ground-level
+ - Added extra debug logging to record TTA and periapsis altitude at the cutoff decision
+ - Rationale: prevents cutting engines when the computed apoapsis is already behind the rocket (which yielded PerAlt=0 and an impact trajectory)
+
+Major Issue:
+ - If apoapsis is ~target altitude, DO NOT try timewarp to periapsis until it is at least at the target height, otherwise the algorithm will compute a periapsis of zero and cut engines, resulting in an impact trajectory.
+
+TODO:
+ - MUST FIX MAJOR ISSUE before release, otherwise the autopilot will fail to reach orbit in many cases. This is a critical bug that needs to be addressed immediately.
+
+New Urgent Issue (timewarp -> reentry):
+ - Symptom: Immediately after leaving the Kármán line when the apoapsis is near the target height, the autopilot attempts to timewarp toward periapsis. Because periapsis hasn't yet risen to a safe altitude, the vessel re-enters the atmosphere or ends up on an impact trajectory.
+ - Repro: observed on Normal difficulty (see recent `log.txt`), apoapsis ~= targetRadius while `PerAlt` remains 0m or very low, then timewarp is enabled and flight is lost.
+ - Root cause (likely): autopilot allows timewarp toward periapsis when apo ≈ target even if periapsis is still below-safe altitude; timewarp is effectively instantaneous and the orbital solution becomes invalid (periapsis at or under atmosphere/ground).
+ - Immediate mitigation suggestions:
+	 - Do NOT enable/timewarp to periapsis until the computed `periapsisAltitude` is above a safe threshold (e.g., > `PERIAPSIS_TOLERANCE` or targetAltitude * a small factor).
+	 - Require apoapsis to be strictly ahead (positive time-to-apo) and periapsisAltitude above tolerance before calling `WorldTime.main.SetState(...)` for aggressive warping.
+	 - Add logging when timewarp/state changes show `TTA`, `periapsisAltitude`, and `rawApoapsis` so incidents can be reproduced.
+ - Priority: Critical — implement mitigation before next release.

@@ -59,10 +59,7 @@ namespace RevolutionlessAutopilot
                 landingAutopilot.FixedUpdate();
         }
 
-        // ──────────────────────────────────────────────
         // (RU) Управление автопилотом подъёма | (EN) Ascent autopilot control
-        // ──────────────────────────────────────────────
-
         public void ToggleAscent()
         {
             if (currentRocket == null)
@@ -95,10 +92,7 @@ namespace RevolutionlessAutopilot
             }
         }
 
-        // ──────────────────────────────────────────────
         // (RU) Управление посадочным автопилотом | (EN) Landing autopilot control
-        // ──────────────────────────────────────────────
-
         public void ToggleLanding()
         {
             if (currentRocket == null)

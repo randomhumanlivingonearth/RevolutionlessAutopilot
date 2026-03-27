@@ -1,0 +1,150 @@
+[21:25:57] LOG: [Autopilot] State: PitchOver, Alt: 79889m, RawApo: 6416757m, ApoAlt: 116757m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7702.8m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:25:57] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:25:57] LOG: [Autopilot] Engine has fuel and is on
+[21:25:57] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=0.1, turn=-1.00
+[21:25:57] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=1.00
+[21:25:58] LOG: [Autopilot] State: PitchOver, Alt: 79740m, RawApo: 6422637m, ApoAlt: 122637m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7728.5m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:25:58] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:25:58] LOG: [Autopilot] Engine has fuel and is on
+[21:25:58] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=0.7, turn=1.00
+[21:25:58] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=1.00
+[21:25:59] LOG: [Autopilot] Throttle set to 0.850, ON=True
+[21:25:59] LOG: [Autopilot] State: PitchOver, Alt: 79603m, RawApo: 6431295m, ApoAlt: 131295m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7752.8m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:25:59] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:25:59] LOG: [Autopilot] Engine has fuel and is on
+[21:25:59] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=0.6, turn=1.00
+[21:25:59] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.85
+[21:26:00] LOG: [Autopilot] Throttle set to 0.650, ON=True
+[21:26:00] LOG: [Autopilot] State: PitchOver, Alt: 79462m, RawApo: 6443173m, ApoAlt: 143173m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7773.9m/s, TurnAxis: 1.00, aboveAtmo: False
+[21:26:00] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:00] LOG: [Autopilot] Engine has fuel and is on
+[21:26:00] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.5, turn=-1.00
+[21:26:00] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.65
+[21:26:00] LOG: [Autopilot] Throttle set to 0.400, ON=True
+[21:26:01] LOG: [Autopilot] Throttle set to 0.250, ON=True
+[21:26:01] LOG: [Autopilot] Throttle set to 0.000, ON=False
+[21:26:01] LOG: [Autopilot] State: PitchOver, Alt: 79325m, RawApo: 6450087m, ApoAlt: 150087m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7782.9m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:26:01] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:01] LOG: [Autopilot] Engine has fuel and is on
+[21:26:01] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=0.2, turn=1.00
+[21:26:01] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:03] LOG: [Autopilot] State: PitchOver, Alt: 79062m, RawApo: 6450087m, ApoAlt: 150087m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7783.2m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:26:03] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:03] LOG: [Autopilot] Engine has fuel and is on
+[21:26:03] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.1, turn=-1.00
+[21:26:03] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:05] LOG: [Autopilot] State: PitchOver, Alt: 78799m, RawApo: 6450087m, ApoAlt: 150087m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7783.6m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:26:05] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:05] LOG: [Autopilot] Engine has fuel and is on
+[21:26:05] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=0.2, turn=1.00
+[21:26:05] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:06] LOG: [Autopilot] State: PitchOver, Alt: 78670m, RawApo: 6450087m, ApoAlt: 150087m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7783.7m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:26:06] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:06] LOG: [Autopilot] Engine has fuel and is on
+[21:26:06] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=0.2, turn=1.00
+[21:26:06] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:07] LOG: [Autopilot] State: PitchOver, Alt: 78542m, RawApo: 6450087m, ApoAlt: 150087m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7783.9m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:26:07] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:07] LOG: [Autopilot] Engine has fuel and is on
+[21:26:07] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=0.2, turn=1.00
+[21:26:07] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:08] LOG: [Autopilot] State: PitchOver, Alt: 78413m, RawApo: 6450087m, ApoAlt: 150087m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7784.0m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:26:08] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:08] LOG: [Autopilot] Engine has fuel and is on
+[21:26:08] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=0.2, turn=1.00
+[21:26:08] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:09] LOG: [Autopilot] State: PitchOver, Alt: 78283m, RawApo: 6450087m, ApoAlt: 150087m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7784.2m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:26:09] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:09] LOG: [Autopilot] Engine has fuel and is on
+[21:26:09] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.1, turn=-1.00
+[21:26:09] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:10] LOG: [Autopilot] State: PitchOver, Alt: 78154m, RawApo: 6450087m, ApoAlt: 150087m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7784.4m/s, TurnAxis: 1.00, aboveAtmo: False
+[21:26:10] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:10] LOG: [Autopilot] Engine has fuel and is on
+[21:26:10] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.1, turn=-1.00
+[21:26:10] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:11] LOG: [Autopilot] State: PitchOver, Alt: 78025m, RawApo: 6450087m, ApoAlt: 150087m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7784.5m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:26:11] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:11] LOG: [Autopilot] Engine has fuel and is on
+[21:26:11] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.1, turn=-1.00
+[21:26:11] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:12] LOG: [Autopilot] State: PitchOver, Alt: 77894m, RawApo: 6450087m, ApoAlt: 150087m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7784.7m/s, TurnAxis: 1.00, aboveAtmo: False
+[21:26:12] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:12] LOG: [Autopilot] Engine has fuel and is on
+[21:26:12] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.4, turn=-1.00
+[21:26:12] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:13] LOG: [Autopilot] State: PitchOver, Alt: 77765m, RawApo: 6450087m, ApoAlt: 150087m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7784.8m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:26:13] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:13] LOG: [Autopilot] Engine has fuel and is on
+[21:26:13] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=0.2, turn=1.00
+[21:26:13] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:15] LOG: [Autopilot] State: PitchOver, Alt: 77497m, RawApo: 6450086m, ApoAlt: 150086m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7785.2m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:26:15] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:15] LOG: [Autopilot] Engine has fuel and is on
+[21:26:15] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.1, turn=-1.00
+[21:26:15] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:16] LOG: [Autopilot] State: PitchOver, Alt: 77368m, RawApo: 6450086m, ApoAlt: 150086m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7785.3m/s, TurnAxis: 1.00, aboveAtmo: False
+[21:26:16] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:16] LOG: [Autopilot] Engine has fuel and is on
+[21:26:16] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.1, turn=1.00
+[21:26:16] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:17] LOG: [Autopilot] State: PitchOver, Alt: 77239m, RawApo: 6450086m, ApoAlt: 150086m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7785.5m/s, TurnAxis: 1.00, aboveAtmo: False
+[21:26:17] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:17] LOG: [Autopilot] Engine has fuel and is on
+[21:26:17] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.1, turn=-1.00
+[21:26:17] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:18] LOG: [Autopilot] State: PitchOver, Alt: 77109m, RawApo: 6450086m, ApoAlt: 150086m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7785.6m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:26:18] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:18] LOG: [Autopilot] Engine has fuel and is on
+[21:26:18] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.1, turn=-1.00
+[21:26:18] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:19] LOG: [Autopilot] State: PitchOver, Alt: 76980m, RawApo: 6450086m, ApoAlt: 150086m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7785.8m/s, TurnAxis: 1.00, aboveAtmo: False
+[21:26:19] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:19] LOG: [Autopilot] Engine has fuel and is on
+[21:26:19] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.1, turn=1.00
+[21:26:19] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:20] LOG: [Autopilot] State: PitchOver, Alt: 76847m, RawApo: 6450086m, ApoAlt: 150086m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7786.0m/s, TurnAxis: 1.00, aboveAtmo: False
+[21:26:20] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:20] LOG: [Autopilot] Engine has fuel and is on
+[21:26:20] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.1, turn=1.00
+[21:26:20] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:21] LOG: [Autopilot] State: PitchOver, Alt: 76717m, RawApo: 6450086m, ApoAlt: 150086m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7786.1m/s, TurnAxis: 1.00, aboveAtmo: False
+[21:26:21] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:21] LOG: [Autopilot] Engine has fuel and is on
+[21:26:21] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.1, turn=-1.00
+[21:26:21] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:22] LOG: [Autopilot] State: PitchOver, Alt: 76588m, RawApo: 6450086m, ApoAlt: 150086m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7786.3m/s, TurnAxis: 1.00, aboveAtmo: False
+[21:26:22] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:22] LOG: [Autopilot] Engine has fuel and is on
+[21:26:22] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.1, turn=1.00
+[21:26:22] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:23] LOG: [Autopilot] State: PitchOver, Alt: 76458m, RawApo: 6450086m, ApoAlt: 150086m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7786.4m/s, TurnAxis: 1.00, aboveAtmo: False
+[21:26:23] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:23] LOG: [Autopilot] Engine has fuel and is on
+[21:26:23] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.1, turn=-1.00
+[21:26:23] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:24] LOG: [Autopilot] State: PitchOver, Alt: 76329m, RawApo: 6450086m, ApoAlt: 150086m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7786.6m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:26:24] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:24] LOG: [Autopilot] Engine has fuel and is on
+[21:26:24] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.1, turn=-1.00
+[21:26:24] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:25] LOG: [Autopilot] State: PitchOver, Alt: 76197m, RawApo: 6450086m, ApoAlt: 150086m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7786.8m/s, TurnAxis: 1.00, aboveAtmo: False
+[21:26:25] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:25] LOG: [Autopilot] Engine has fuel and is on
+[21:26:25] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.4, turn=-1.00
+[21:26:25] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:26] LOG: [Autopilot] State: PitchOver, Alt: 76067m, RawApo: 6450086m, ApoAlt: 150086m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7786.9m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:26:26] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:26] LOG: [Autopilot] Engine has fuel and is on
+[21:26:26] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=0.2, turn=1.00
+[21:26:26] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:27] LOG: [Autopilot] State: PitchOver, Alt: 75938m, RawApo: 6450086m, ApoAlt: 150086m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7787.1m/s, TurnAxis: 1.00, aboveAtmo: False
+[21:26:27] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:27] LOG: [Autopilot] Engine has fuel and is on
+[21:26:27] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=-0.4, turn=-1.00
+[21:26:27] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00
+[21:26:28] LOG: [Autopilot] State: PitchOver, Alt: 75821m, RawApo: 6450086m, ApoAlt: 150086m, PerAlt: 0m, TargetRadius: 6450000m, Vel: 7787.2m/s, TurnAxis: -1.00, aboveAtmo: False
+[21:26:28] LOG: [Autopilot] Stage 4: engines count=1, detach modules count=0
+[21:26:28] LOG: [Autopilot] Engine has fuel and is on
+[21:26:28] LOG: [Autopilot] Pitch: current=0.0, target=0.0, error=0.0, angVel=0.2, turn=1.00
+[21:26:28] LOG: [Autopilot] PitchOver: targetPitch=0.0, progress=1.000, turnEndAlt=67500m, throttle=0.00

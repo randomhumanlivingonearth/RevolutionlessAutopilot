@@ -270,18 +270,35 @@ namespace RevolutionlessAutopilot
                     SetPitch(targetPitch);
 
                     float throttle = CalculateThrottleDynamic(apoapsis, targetRadius);
+                    // Prevent full shutdown while apo is near target but peri not yet safe.
+                    double pitchoverTTA = GetTimeToApoapsis();
+                    if (!(pitchoverTTA > 0.5 && periapsisAltitude > PERIAPSIS_TOLERANCE))
+                    {
+                        float floored = Math.Max(throttle, APO_MIN_THROTTLE_FACTOR);
+                        if (floored > throttle && debug)
+                            Debug.Log($"[Autopilot] PitchOver: throttle floored from {throttle:F2} to {floored:F2} because TTA={pitchoverTTA:F2}s, periAlt={periapsisAltitude:F0}m");
+                        throttle = floored;
+                    }
                     SetThrottle(throttle);
 
                     if (debug && UnityEngine.Time.frameCount % 60 == 0)
                         Debug.Log($"[Autopilot] PitchOver: targetPitch={targetPitch:F1}, progress={turnProgress:F3}, turnEndAlt={turnEndAltitude:F0}m, throttle={throttle:F2}");
 
-                    // (RU) Отключаем двигатели при достижении целевого апогея с недолётом 500 м | (EN) We shut down the engines when we reach the target apogee with a shortfall of 500 m.
-                    if (aboveAtmosphere && apoapsis >= targetRadius - APOAPSIS_TARGET_MARGIN)
+                    // (RU) Отключаем двигатели при достижении целевого апогея с недолётом 100 м,
+                    // только если апо ещё впереди и перицентр уже имеет разумную высоту.
+                    // (EN) We shut down the engines when we reach the target apogee within margin,
+                    // but only if the apoapsis is still ahead and the periapsis is sensible.
+                    double pitchoverTimeToApo = GetTimeToApoapsis();
+                    if (apoapsis >= targetRadius - APOAPSIS_TARGET_MARGIN && pitchoverTimeToApo > 0.5 && periapsisAltitude > PERIAPSIS_TOLERANCE)
                     {
-                        if (debug) Debug.Log($"[Autopilot] PitchOver -> Coast, apoapsis reached {rawApoapsis:F0}m (alt {apoapsisAltitude:F0}m)");
+                        if (debug) Debug.Log($"[Autopilot] PitchOver -> Coast, apoapsis={apoapsisAltitude:F0}m, TTA={pitchoverTimeToApo:F2}s, periAlt={periapsisAltitude:F0}m, aboveAtmo={aboveAtmosphere}");
                         CutEngines();
                         state = AscentState.Coast;
                         coastLogCounter = 0;
+                    }
+                    else if (apoapsis >= targetRadius - APOAPSIS_TARGET_MARGIN && pitchoverTimeToApo > 0.5)
+                    {
+                        if (debug) Debug.Log($"[Autopilot] PitchOver: apo meets target but delaying coast; periAlt={periapsisAltitude:F0}m");
                     }
                     break;
 
@@ -292,42 +309,94 @@ namespace RevolutionlessAutopilot
                     if (debug && coastLogCounter % 60 == 0)
                     {
                         double tta = GetTimeToApoapsis();
-                        Debug.Log($"[Autopilot] Coast: TTA={tta:F2}s, aboveAtmo={aboveAtmosphere}");
+                        Debug.Log($"[Autopilot] Coast: TTA={tta:F2}s, aboveAtmo={aboveAtmosphere}, periAlt={periapsisAltitude:F0}m");
+                    }
+
+                    // (RU) Аварийное горение: если перицентр небезопасен и мы в атмосфере, жжём по прогрейд.
+                    // (EN) Rescue burn: if we're inside atmosphere with an unsafe periapsis, the rocket will
+                    //      re-enter before reaching apoapsis. Burn prograde at reduced throttle to raise periapsis
+                    //      above the atmosphere. This handles the case where PitchOver cut engines too early.
+                    bool periSafeForCoast = periapsisAltitude > (atmosphereHeight > 100 ? atmosphereHeight + 1000 : 2000);
+                    if (!aboveAtmosphere && !periSafeForCoast)
+                    {
+                        float rescuePitch = GetHorizontalAngle();
+                        if (velocity > 0.1)
+                            rescuePitch = (float)Math.Atan2(rocket.location.velocity.Value.y, rocket.location.velocity.Value.x) * Mathf.Rad2Deg;
+                        SetPitch(rescuePitch);
+                        SetThrottle(0.6f);
+                        if (debug && coastLogCounter % 30 == 0)
+                            Debug.Log($"[Autopilot] Coast rescue burn: periAlt={periapsisAltitude:F0}m below atmosphere, burning prograde");
+                        break;
                     }
 
                     // (RU) Включаем ускорение времени только если мы выше атмосферы и можно ускорять | (EN) We turn on time acceleration only if we are above the atmosphere and can accelerate
                     if (aboveAtmosphere && WorldTime.CanTimewarp(false, false))
                     {
                         double timeToApoapsis = GetTimeToApoapsis();
+                        // Block aggressive timewarp until apo is ahead and periapsis is safe.
+                        if (!(timeToApoapsis > 0.5 && periapsisAltitude > PERIAPSIS_TOLERANCE))
+                        {
+                            if (WorldTime.main.timewarpSpeed > 1)
+                                WorldTime.main.StopTimewarp(false);
+                            if (debug && UnityEngine.Time.frameCount % 30 == 0)
+                                Debug.Log($"[Autopilot] Timewarp blocked in Coast: TTA={timeToApoapsis:F2}s, periAlt={periapsisAltitude:F0}m");
+                        }
+                        else
+                        {
+                            
+                        
+                        
+                        }
+                        
+                        // continue with existing timewarp logic only if allowed
+                        if (timeToApoapsis > 0.5 && periapsisAltitude > PERIAPSIS_TOLERANCE)
+                        {
+                            
+                        
+                        
+                        }
+                        
+                        // NOTE: actual timewarp rate selection below uses timeToApoapsis; to avoid
+                        // duplicating logic we fallthrough into the original branches when allowed.
+                        
+                        if (!(timeToApoapsis > 0.5 && periapsisAltitude > PERIAPSIS_TOLERANCE))
+                        {
+                            // skip the warping branches by jumping to else-clause behaviour
+                        }
+                        
+                        // If peri/tta safe, execute the original warping decisions.
+                        if (timeToApoapsis > 0.5 && periapsisAltitude > PERIAPSIS_TOLERANCE)
+                        {
                         double currentRadiusForBurn = rocket.location.Value.Radius;
                         double horizontalSpeedForBurn = GetHorizontalSpeed();
                         double targetOrbitalSpeedForBurn = CalculateTargetOrbitalSpeed(currentRadiusForBurn);
                         double requiredDeltaVForBurn = Math.Max(0.0, targetOrbitalSpeedForBurn - horizontalSpeedForBurn);
                         double burnLeadTime = Math.Max(COAST_TO_CIRC_MIN_LEAD_TIME, EstimateCircularizationBurnDuration(requiredDeltaVForBurn) * 0.5 + COAST_TO_CIRC_BURN_BUFFER);
-                        double timeToWarpStop = timeToApoapsis - burnLeadTime;
-                        if (timeToWarpStop > 120)
-                        {
-                            WorldTime.main.SetState(WorldTime.MaxTimewarpSpeed, false, false);
-                        }
-                        else if (timeToWarpStop > 60)
-                        {
-                            WorldTime.main.SetState(50, false, false);
-                        }
-                        else if (timeToWarpStop > 30)
-                        {
-                            WorldTime.main.SetState(25, false, false);
-                        }
-                        else if (timeToWarpStop > 15)
-                        {
-                            WorldTime.main.SetState(10, false, false);
-                        }
-                        else if (timeToWarpStop > 8)
-                        {
-                            WorldTime.main.SetState(5, false, false);
-                        }
-                        else if (WorldTime.main.timewarpSpeed > 1)
-                        {
-                            WorldTime.main.StopTimewarp(false);
+                            double timeToWarpStop = timeToApoapsis - burnLeadTime;
+                            if (timeToWarpStop > 120)
+                            {
+                                WorldTime.main.SetState(WorldTime.MaxTimewarpSpeed, false, false);
+                            }
+                            else if (timeToWarpStop > 60)
+                            {
+                                WorldTime.main.SetState(50, false, false);
+                            }
+                            else if (timeToWarpStop > 30)
+                            {
+                                WorldTime.main.SetState(25, false, false);
+                            }
+                            else if (timeToWarpStop > 15)
+                            {
+                                WorldTime.main.SetState(10, false, false);
+                            }
+                            else if (timeToWarpStop > 8)
+                            {
+                                WorldTime.main.SetState(5, false, false);
+                            }
+                            else if (WorldTime.main.timewarpSpeed > 1)
+                            {
+                                WorldTime.main.StopTimewarp(false);
+                            }
                         }
                     }
                     else
@@ -349,10 +418,20 @@ namespace RevolutionlessAutopilot
                     // (RU) Начинаем циркуляризацию, когда осталось меньше заданного времени ИЛИ расстояние по высоте мало | (EN) We start circularization when less than the specified time remains OR the height distance is small
                     if (((timeToBurnStart <= 0.0) && WorldTime.main.timewarpSpeed <= 1) || distanceToApo < COAST_TO_CIRC_DISTANCE)
                     {
-                        WorldTime.main.StopTimewarp(false);
-                        if (debug) Debug.Log($"[Autopilot] Coast -> Circularize, T-{timeToApo:F1}s, burnIn={timeToBurnStart:F1}s, dist={distanceToApo:F0}m, lead={coastLeadTime:F2}s");
-                        CutEngines();
-                        state = AscentState.Circularize;
+                        // Only transition if apo is ahead and periapsis is safe
+                        if (timeToApo > 0.5 && periapsisAltitude > PERIAPSIS_TOLERANCE)
+                        {
+                            WorldTime.main.StopTimewarp(false);
+                            if (debug) Debug.Log($"[Autopilot] Coast -> Circularize, T-{timeToApo:F1}s, burnIn={timeToBurnStart:F1}s, dist={distanceToApo:F0}m, lead={coastLeadTime:F2}s");
+                            CutEngines();
+                            state = AscentState.Circularize;
+                            deltaVTarget = requiredDeltaV;
+                            
+                        }
+                        else
+                        {
+                            if (debug) Debug.Log($"[Autopilot] Coast: delaying circularize because TTA={timeToApo:F2}s, periAlt={periapsisAltitude:F0}m");
+                        }
                         deltaVTarget = requiredDeltaV;
                         // (RU) Оцениваем, сколько нужно гореть. Внутри SFS значения тяги/ускорения могут кратковременно равняться нулю. | (EN) Estimate how long we need to burn. Depending on SFS internals, thrust/accel values can briefly be 0.
                         // (RU) Это может случиться сразу после отключения двигателей, поэтому используем запасной запас времени. | (EN) This can happen right after we cut engines, so keep a safe fallback duration.
@@ -734,19 +813,23 @@ namespace RevolutionlessAutopilot
 
         private void CutEngines() => SetThrottle(0f);
 
-        // (RU) Динамический расчёт тяги на основе расстояния до цели (для фазы подъёма) | (EN) Dynamic thrust calculation based on distance to target (for the ascent phase)
+        // (RU) Расчёт тяги в фазе подъёма.
+        // (EN) Throttle during the ascent phase.
+        // (EN) Keep near-full throttle throughout — the rocket needs to be building horizontal velocity
+        //      the entire time. Only reduce in the final 3 km to avoid a hard overshoot.
+        //      The old 30 km smooth taper reduced throttle to 0.15-0.27 for the entire apoapsis-building
+        //      phase, leaving the rocket with insufficient horizontal velocity to coast to apoapsis.
         private float CalculateThrottleDynamic(double currentValue, double targetRadius)
         {
             if (currentValue <= 0) return 1f;
 
             double diff = targetRadius - currentValue;
             if (diff <= 0) return 0f;
+            if (diff > 3000) return 1f;
 
-            if (diff > 20000) return 1f;
-            if (diff > 10000) return 0.85f;
-            if (diff > 5000) return 0.65f;
-            if (diff > 2000) return 0.4f;
-            return 0.25f;
+            // (RU) Плавное снижение только в последние 3 км, минимум 0.4 | (EN) Gentle taper only in final 3 km, minimum 0.4
+            float t = (float)(diff / 3000.0);
+            return Mathf.Lerp(0.4f, 1f, t);
         }
 
         private void InitializeMissionTargets()
