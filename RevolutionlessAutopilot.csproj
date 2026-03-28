@@ -74,6 +74,8 @@
     <Compile Include="AscentAutopilot.cs" />
     <Compile Include="LandingAutopilot.cs" />
     <Compile Include="AutopilotUpdater.cs" />
+    <Compile Include="OrbitManager.cs" />
+    <Compile Include="RocketManager.cs" />
     <Compile Include="GUI.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
