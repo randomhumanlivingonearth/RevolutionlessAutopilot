@@ -53,7 +53,7 @@ namespace RevolutionlessAutopilot
         private const float  PARKING_ORBIT_ATMOSPHERE_MARGIN  = 5000f;
 
         // Gravity turn shape
-        private const float  PITCH_START_ALTITUDE             = 100f;
+        private const float  PITCH_START_ALTITUDE             = 1000f;
         private const float  TURN_END_ANGLE                   = 0f;
         private const float  TURN_SHAPE_EXPONENT              = 0.8f;
         private const float  MIN_PITCH                        = 5f;

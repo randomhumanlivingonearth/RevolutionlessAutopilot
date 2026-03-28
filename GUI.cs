@@ -10,73 +10,67 @@ namespace RevolutionlessAutopilot
 {
     public static class GUI
     {
-        // ── Window handles ─────────────────────────────────────────────────────
+        // (RU) Главное окно | (EN) Main window
         private static GameObject mainHolder;
         private static ClosableWindow mainWindow;
         private static readonly int mainWindowID = Builder.GetRandomID();
+        private const string mainWindowTitle = "Autopilot";
         private const string mainWindowPosKey = "RevolutionlessAutopilot.MainWindow";
 
+        // (RU) Окно подъёма | (EN) Ascent window
         private static GameObject ascentHolder;
         private static ClosableWindow ascentWindow;
         private static readonly int ascentWindowID = Builder.GetRandomID();
+        private const string ascentWindowTitle = "Ascent Autopilot";
         private const string ascentWindowPosKey = "RevolutionlessAutopilot.AscentWindow";
 
+        // (RU) Окно посадки | (EN) Landing window
         private static GameObject landingHolder;
         private static ClosableWindow landingWindow;
         private static readonly int landingWindowID = Builder.GetRandomID();
+        private const string landingWindowTitle = "Landing Autopilot";
         private const string landingWindowPosKey = "RevolutionlessAutopilot.LandingWindow";
 
-        // ── Dynamic UI elements ────────────────────────────────────────────────
-        // Labels whose text gets swapped by Refresh()
-        private static Label ascentButtonLabel;   // "Ascent" / "Ascent ●"
-        private static Label landingButtonLabel;  // "Landing" / "Landing ●"
-        private static Label ascentActionLabel;   // "Start Ascent" / "Stop Ascent"
-        private static Label landingActionLabel;  // "Start Landing" / "Stop Landing"
-        private static Label ascentStatusLabel;   // current state description
-        private static Label landingStatusLabel;
+        // (RU) Состояние UI | (EN) UI state
+        private const float minTargetOrbitKm = 1f;
+        private const float fallbackRecommendedOrbitMeters = 40000f;
+        private static readonly float[] targetAdjustButtonsKm = { 1f, 10f, 100f, 1000f, 10000f };
 
-        // ── Dev mode ───────────────────────────────────────────────────────────
+        private static bool ascentWindowVisible;
+        private static bool landingWindowVisible;
+
+        private static TextInput targetAltitudeInput;
+        private static string pendingTargetOrbitText;
+
+        // (RU) Режим разработчика — скрывает посадку до ввода кода | (EN) Dev mode — hides landing until unlock code is entered
         private static bool devModeEnabled = false;
         private const string DEV_UNLOCK_COMMAND = "/DEV MODE123";
         private static SFS.UI.ModGUI.Button landingButton;
         private static Container consoleRow;
 
-        // ── Orbit altitude input ───────────────────────────────────────────────
-        private const float minTargetOrbitKm = 1f;
-        private const float fallbackRecommendedOrbitMeters = 40000f;
-        private static readonly float[] targetAdjustButtonsKm = { 1f, 10f, 100f, 1000f, 10000f };
-        private static TextInput targetAltitudeInput;
-        private static string pendingTargetOrbitText;
-
-        private static bool ascentWindowVisible;
-        private static bool landingWindowVisible;
-
-        // ══════════════════════════════════════════════════════════════════════
-        // Show / hide
-        // ══════════════════════════════════════════════════════════════════════
-
+        // (RU) Показать / скрыть всё GUI | (EN) Show / hide all GUI
         public static void ShowGUI()
         {
-            // ── Main window ────────────────────────────────────────────────────
+            // (RU) Главное окно | (EN) Main window
             mainHolder = Builder.CreateHolder(Builder.SceneToAttach.CurrentScene, "AutopilotMainHolder");
             mainWindow = UIToolsBuilder.CreateClosableWindow(
-                mainHolder.transform, mainWindowID,
-                300, 220,
-                Settings.data.mainWindowPosition.x, Settings.data.mainWindowPosition.y,
-                true, false, 0.95f, "Autopilot", false);
+                mainHolder.transform,
+                mainWindowID,
+                300, 240,
+                Settings.data.mainWindowPosition.x,
+                Settings.data.mainWindowPosition.y,
+                true, false, 0.95f, mainWindowTitle, false
+            );
             mainWindow.RegisterPermanentSaving(mainWindowPosKey);
-            mainWindow.CreateLayoutGroup(Type.Vertical, TextAnchor.MiddleCenter, 8f);
+            mainWindow.CreateLayoutGroup(Type.Vertical, TextAnchor.MiddleCenter, 10f);
 
-            // Ascent sub-window toggle — holds a label we can update later
-            var ascentMainBtn = Builder.CreateButton(mainWindow, 280, 40, 0, 0, ToggleAscentWindow, "");
-            ascentButtonLabel = GetButtonLabel(ascentMainBtn);
+            Builder.CreateButton(mainWindow, 280, 40, 0, 0, ToggleAscentWindow, "Ascent");
 
-            // Landing sub-window toggle — hidden until dev mode
-            landingButton = Builder.CreateButton(mainWindow, 280, 40, 0, 0, ToggleLandingWindow, "");
-            landingButtonLabel = GetButtonLabel(landingButton);
+            // (RU) Кнопка посадки скрыта до включения режима разработчика | (EN) Landing button hidden until dev mode is unlocked
+            landingButton = Builder.CreateButton(mainWindow, 280, 40, 0, 0, ToggleLandingWindow, "Landing");
             landingButton.gameObject.SetActive(devModeEnabled);
 
-            // Developer console row
+            // (RU) Консоль разработчика | (EN) Developer console — type the unlock command and press Enter
             consoleRow = Builder.CreateContainer(mainWindow);
             consoleRow.CreateLayoutGroup(Type.Horizontal, TextAnchor.MiddleLeft, 4f);
             Builder.CreateLabel(consoleRow, 20, 24, 0, 0, ">");
@@ -85,121 +79,56 @@ namespace RevolutionlessAutopilot
             consoleInput.field.onEndEdit.AddListener(OnConsoleCommand);
             consoleRow.gameObject.SetActive(!devModeEnabled);
 
-            // ── Ascent window ──────────────────────────────────────────────────
+            // (RU) Окно подъёма | (EN) Ascent window
             ascentHolder = Builder.CreateHolder(Builder.SceneToAttach.CurrentScene, "AutopilotAscentHolder");
             ascentWindow = UIToolsBuilder.CreateClosableWindow(
-                ascentHolder.transform, ascentWindowID,
-                380, 270,
-                Settings.data.ascentWindowPosition.x, Settings.data.ascentWindowPosition.y,
-                true, false, 0.95f, "Ascent Autopilot", false);
+                ascentHolder.transform,
+                ascentWindowID,
+                380, 230,
+                Settings.data.ascentWindowPosition.x,
+                Settings.data.ascentWindowPosition.y,
+                true, false, 0.95f, ascentWindowTitle, false
+            );
             ascentWindow.RegisterPermanentSaving(ascentWindowPosKey);
             ascentWindow.CreateLayoutGroup(Type.Vertical, TextAnchor.MiddleCenter, 5f);
             ascentWindow.Active = false;
+
             BuildAscentWindow();
 
-            // ── Landing window ─────────────────────────────────────────────────
+            // (RU) Окно посадки | (EN) Landing window
             landingHolder = Builder.CreateHolder(Builder.SceneToAttach.CurrentScene, "AutopilotLandingHolder");
             landingWindow = UIToolsBuilder.CreateClosableWindow(
-                landingHolder.transform, landingWindowID,
-                380, 160,
-                Settings.data.landingWindowPosition.x, Settings.data.landingWindowPosition.y,
-                true, false, 0.95f, "Landing Autopilot", false);
+                landingHolder.transform,
+                landingWindowID,
+                380, 140,
+                Settings.data.landingWindowPosition.x,
+                Settings.data.landingWindowPosition.y,
+                true, false, 0.95f, landingWindowTitle, false
+            );
             landingWindow.RegisterPermanentSaving(landingWindowPosKey);
             landingWindow.CreateLayoutGroup(Type.Vertical, TextAnchor.MiddleCenter, 5f);
             landingWindow.Active = false;
+
+            // (RU) Временно скрываем окно посадки до тех пор, пока эта функция не будет реализована должным образом. | (EN) Temporarily hiding landing window until it's implemented properly
             BuildLandingWindow();
 
-            // Save positions on drag
-            mainWindow.gameObject.GetComponent<DraggableWindowModule>().OnDropAction  += SaveMainWindowPosition;
+            // (RU) Сохраняем позиции при перетаскивании | (EN) Save positions on drag
+            mainWindow.gameObject.GetComponent<DraggableWindowModule>().OnDropAction += SaveMainWindowPosition;
             ascentWindow.gameObject.GetComponent<DraggableWindowModule>().OnDropAction += SaveAscentWindowPosition;
             landingWindow.gameObject.GetComponent<DraggableWindowModule>().OnDropAction += SaveLandingWindowPosition;
-
-            Refresh();
         }
 
         public static void HideGUI()
         {
-            if (mainHolder   != null) Object.Destroy(mainHolder);
-            if (ascentHolder != null) Object.Destroy(ascentHolder);
-            if (landingHolder != null) Object.Destroy(landingHolder);
+            if (mainHolder != null)
+                Object.Destroy(mainHolder);
+            if (ascentHolder != null)
+                Object.Destroy(ascentHolder);
+            if (landingHolder != null)
+                Object.Destroy(landingHolder);
         }
 
-        // ══════════════════════════════════════════════════════════════════════
-        // Refresh — called by AutopilotUpdater ~4× per second and on any toggle
-        // ══════════════════════════════════════════════════════════════════════
-
-        public static void Refresh()
-        {
-            var ap = AutopilotUpdater.Instance;
-            if (ap == null) return;
-
-            bool ascentActive  = ap.IsAscentActive;
-            bool landingActive = ap.IsLandingActive;
-
-            // Main window buttons — show a dot when active
-            SetLabelText(ascentButtonLabel,  ascentActive  ? "Ascent  ●" : "Ascent");
-            SetLabelText(landingButtonLabel, landingActive ? "Landing ●" : "Landing");
-
-            // Ascent window action button and status
-            SetLabelText(ascentActionLabel,  ascentActive  ? "Stop Ascent"   : "Start Ascent");
-            SetLabelText(landingActionLabel, landingActive ? "Stop Landing"  : "Start Landing");
-
-            // State descriptions
-            SetLabelText(ascentStatusLabel,  ascentActive  ? ap.AscentStatus  : "—");
-            SetLabelText(landingStatusLabel, landingActive ? ap.LandingStatus : "—");
-        }
-
-        // ══════════════════════════════════════════════════════════════════════
-        // Build sub-windows
-        // ══════════════════════════════════════════════════════════════════════
-
-        private static void BuildAscentWindow()
-        {
-            // Target altitude row
-            var inputRow = Builder.CreateContainer(ascentWindow);
-            inputRow.CreateLayoutGroup(Type.Horizontal, TextAnchor.MiddleLeft, 5f);
-            Builder.CreateLabel(inputRow, 150, 30, 0, 0, "Target orbit (km)");
-            pendingTargetOrbitText = FormatTargetOrbitKm(Settings.data.targetOrbitAltitude);
-            targetAltitudeInput = Builder.CreateTextInput(inputRow, 170, 40, 0, 0, pendingTargetOrbitText);
-            targetAltitudeInput.field.characterValidation = TMP_InputField.CharacterValidation.Decimal;
-            targetAltitudeInput.field.onValueChanged.AddListener(OnTargetAltitudeValueChanged);
-            targetAltitudeInput.field.onEndEdit.AddListener(OnTargetAltitudeChanged);
-
-            // Adjustment buttons
-            var adjustRow = Builder.CreateContainer(ascentWindow);
-            adjustRow.CreateLayoutGroup(Type.Horizontal, TextAnchor.MiddleCenter, 4f);
-            foreach (float stepKm in targetAdjustButtonsKm)
-            {
-                float captured = stepKm;
-                Builder.CreateButton(adjustRow, 68, 32, 0, 0, () => AdjustTargetOrbitKm(captured), $"+{captured:0}");
-            }
-
-            Builder.CreateButton(ascentWindow, 220, 34, 0, 0, ResetTargetOrbitKm, "Reset (Atmo + 5 km)");
-
-            // Status label
-            ascentStatusLabel = Builder.CreateLabel(ascentWindow, 360, 24, 0, 0, "—");
-
-            // Start / Stop button — label gets swapped by Refresh()
-            var ascentActionBtn = Builder.CreateButton(ascentWindow, 220, 40, 0, 0, ToggleAscentAutopilot, "");
-            ascentActionLabel = GetButtonLabel(ascentActionBtn);
-        }
-
-        private static void BuildLandingWindow()
-        {
-            Builder.CreateLabel(landingWindow, 360, 28, 0, 0, "Deorbit, flip & suicide burn.");
-
-            // Status label
-            landingStatusLabel = Builder.CreateLabel(landingWindow, 360, 24, 0, 0, "—");
-
-            // Start / Stop button
-            var landingActionBtn = Builder.CreateButton(landingWindow, 220, 40, 0, 0, ToggleLandingAutopilot, "");
-            landingActionLabel = GetButtonLabel(landingActionBtn);
-        }
-
-        // ══════════════════════════════════════════════════════════════════════
-        // Sub-window toggles
-        // ══════════════════════════════════════════════════════════════════════
-
+        // (RU) Переключение подокон | (EN) Sub-window toggles
         private static void ToggleAscentWindow()
         {
             ascentWindowVisible = !ascentWindowVisible;
@@ -212,20 +141,43 @@ namespace RevolutionlessAutopilot
             landingWindow.Active = landingWindowVisible;
         }
 
-        // ══════════════════════════════════════════════════════════════════════
-        // Developer console
-        // ══════════════════════════════════════════════════════════════════════
+        // (RU) Построение окна подъёма | (EN) Build ascent window
+        private static void BuildAscentWindow()
+        {
+            var inputRow = Builder.CreateContainer(ascentWindow);
+            inputRow.CreateLayoutGroup(Type.Horizontal, TextAnchor.MiddleLeft, 5f);
+            Builder.CreateLabel(inputRow, 150, 30, 0, 0, "Target Orbit Alt (km)");
+            pendingTargetOrbitText = FormatTargetOrbitKm(Settings.data.targetOrbitAltitude);
+            targetAltitudeInput = Builder.CreateTextInput(inputRow, 170, 40, 0, 0, pendingTargetOrbitText);
+            targetAltitudeInput.field.characterValidation = TMP_InputField.CharacterValidation.Decimal;
+            targetAltitudeInput.field.onValueChanged.AddListener(OnTargetAltitudeValueChanged);
+            targetAltitudeInput.field.onEndEdit.AddListener(OnTargetAltitudeChanged);
 
+            var adjustRow = Builder.CreateContainer(ascentWindow);
+            adjustRow.CreateLayoutGroup(Type.Horizontal, TextAnchor.MiddleCenter, 4f);
+            foreach (float stepKm in targetAdjustButtonsKm)
+            {
+                float capturedStepKm = stepKm;
+                Builder.CreateButton(adjustRow, 68, 32, 0, 0, () => AdjustTargetOrbitKm(capturedStepKm), $"+{capturedStepKm:0}");
+            }
+
+            Builder.CreateButton(ascentWindow, 220, 34, 0, 0, ResetTargetOrbitKm, "Reset (Atmo + 5 km)");
+            Builder.CreateButton(ascentWindow, 220, 40, 0, 0, ToggleAscentAutopilot, "Start Ascent");
+        }
+
+        // (RU) Команды консоли разработчика | (EN) Developer console commands
         private static void OnConsoleCommand(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return;
+
             if (input.Trim() == DEV_UNLOCK_COMMAND)
             {
                 devModeEnabled = true;
-                if (landingButton != null) landingButton.gameObject.SetActive(true);
-                if (consoleRow    != null) consoleRow.gameObject.SetActive(false);
+                if (landingButton != null)
+                    landingButton.gameObject.SetActive(true);
+                if (consoleRow != null)
+                    consoleRow.gameObject.SetActive(false);
                 MsgDrawer.main.Log("[DEV] Landing autopilot unlocked.");
-                Refresh();
             }
             else
             {
@@ -233,10 +185,14 @@ namespace RevolutionlessAutopilot
             }
         }
 
-        // ══════════════════════════════════════════════════════════════════════
-        // Ascent altitude input
-        // ══════════════════════════════════════════════════════════════════════
+        // (RU) Построение окна посадки | (EN) Build landing window
+        private static void BuildLandingWindow()
+        {
+            Builder.CreateLabel(landingWindow, 360, 30, 0, 0, "Performs deorbit, flip & suicide burn.");
+            Builder.CreateButton(landingWindow, 220, 40, 0, 0, ToggleLandingAutopilot, "Start Landing");
+        }
 
+        // (RU) Логика подъёма | (EN) Ascent logic
         private static void OnTargetAltitudeValueChanged(string value)
         {
             pendingTargetOrbitText = value;
@@ -255,32 +211,31 @@ namespace RevolutionlessAutopilot
 
         private static void ToggleAscentAutopilot()
         {
-            if (!TryCommitTargetAltitude(true)) return;
-            AutopilotUpdater.Instance.ToggleAscent();
-        }
+            if (!TryCommitTargetAltitude(true))
+                return;
 
-        private static void ToggleLandingAutopilot()
-        {
-            AutopilotUpdater.Instance.ToggleLanding();
+            AutopilotUpdater.Instance.ToggleAscent();
         }
 
         private static bool TryCommitTargetAltitude(bool showErrors)
         {
-            if (targetAltitudeInput == null) return true;
+            if (targetAltitudeInput == null)
+                return true;
 
-            string raw = !string.IsNullOrWhiteSpace(pendingTargetOrbitText)
+            string rawValue = !string.IsNullOrWhiteSpace(pendingTargetOrbitText)
                 ? pendingTargetOrbitText
                 : (targetAltitudeInput.field != null ? targetAltitudeInput.field.text : targetAltitudeInput.Text);
 
-            if (!TryParseTargetOrbitKm(raw, out float km))
+            if (!TryParseTargetOrbitKm(rawValue, out float km))
             {
-                if (showErrors) MsgDrawer.main.Log("Enter a valid target orbit altitude.");
+                if (showErrors)
+                    MsgDrawer.main.Log("Enter a valid target orbit altitude.");
                 return false;
             }
 
             Settings.data.targetOrbitAltitude = km * 1000f;
             Settings.Save();
-            pendingTargetOrbitText   = FormatTargetOrbitKm(Settings.data.targetOrbitAltitude);
+            pendingTargetOrbitText = FormatTargetOrbitKm(Settings.data.targetOrbitAltitude);
             targetAltitudeInput.Text = pendingTargetOrbitText;
             return true;
         }
@@ -290,61 +245,59 @@ namespace RevolutionlessAutopilot
             Settings.data.targetOrbitAltitude = Mathf.Max(minTargetOrbitKm, km) * 1000f;
             Settings.Save();
             pendingTargetOrbitText = FormatTargetOrbitKm(Settings.data.targetOrbitAltitude);
-            if (targetAltitudeInput != null) targetAltitudeInput.Text = pendingTargetOrbitText;
+            if (targetAltitudeInput != null)
+                targetAltitudeInput.Text = pendingTargetOrbitText;
         }
 
         private static void AdjustTargetOrbitKm(float deltaKm)
         {
-            float current = Settings.data.targetOrbitAltitude / 1000f;
-            if (TryParseTargetOrbitKm(pendingTargetOrbitText, out float pending)) current = pending;
-            SetTargetOrbitKm(current + deltaKm);
+            float currentKm = Settings.data.targetOrbitAltitude / 1000f;
+            if (TryParseTargetOrbitKm(pendingTargetOrbitText, out float pendingKm))
+                currentKm = pendingKm;
+
+            SetTargetOrbitKm(currentKm + deltaKm);
         }
 
         private static void ResetTargetOrbitKm()
         {
-            float recommended = fallbackRecommendedOrbitMeters;
+            float recommendedMeters = fallbackRecommendedOrbitMeters;
             if (AutopilotUpdater.Instance != null)
-                recommended = AutopilotUpdater.Instance.GetRecommendedLowOrbitAltitudeMeters();
-            SetTargetOrbitKm(recommended / 1000f);
+                recommendedMeters = AutopilotUpdater.Instance.GetRecommendedLowOrbitAltitudeMeters();
+
+            SetTargetOrbitKm(recommendedMeters / 1000f);
         }
 
-        // ══════════════════════════════════════════════════════════════════════
-        // Utilities
-        // ══════════════════════════════════════════════════════════════════════
-
-        /// <summary>
-        /// Extracts the inner Label component from a ModGUI Button so we can
-        /// update its text without recreating the button.
-        /// </summary>
-        private static Label GetButtonLabel(SFS.UI.ModGUI.Button btn)
+        // (RU) Логика посадки | (EN) Landing logic
+        private static void ToggleLandingAutopilot()
         {
-            if (btn == null) return null;
-            return btn.gameObject.GetComponentInChildren<Label>();
+            AutopilotUpdater.Instance.ToggleLanding();
         }
 
-        /// <summary>Safely sets a Label's text. Does nothing if the label is null.</summary>
-        private static void SetLabelText(Label label, string text)
-        {
-            if (label == null) return;
-            label.Text = text;
-        }
-
+        // (RU) Вспомогательные методы парсинга | (EN) Parse helper methods
         private static bool TryParseTargetOrbitKm(string value, out float km)
         {
             km = 0f;
-            if (string.IsNullOrWhiteSpace(value)) return false;
+            if (string.IsNullOrWhiteSpace(value))
+                return false;
+
             var styles = NumberStyles.Float | NumberStyles.AllowThousands;
-            if (!float.TryParse(value, styles, CultureInfo.CurrentCulture,   out km) &&
+            if (!float.TryParse(value, styles, CultureInfo.CurrentCulture, out km) &&
                 !float.TryParse(value, styles, CultureInfo.InvariantCulture, out km) &&
                 !float.TryParse(value.Replace(',', '.'), styles, CultureInfo.InvariantCulture, out km))
+            {
                 return false;
+            }
+
             km = Mathf.Max(minTargetOrbitKm, km);
             return true;
         }
 
         private static string FormatTargetOrbitKm(float altitudeMeters)
-            => (altitudeMeters / 1000f).ToString("0.0", CultureInfo.InvariantCulture);
+        {
+            return (altitudeMeters / 1000f).ToString("0.0", CultureInfo.InvariantCulture);
+        }
 
+        // (RU) Сохранение позиций окон | (EN) Save window positions
         private static void SaveMainWindowPosition()
         {
             Settings.data.mainWindowPosition = Vector2Int.RoundToInt(mainWindow.Position);
