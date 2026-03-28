@@ -194,7 +194,7 @@ namespace RevolutionlessAutopilot
                         : TURN_END_ANGLE;
 
                     rm.SetPitch(pitch);
-                    rm.SetThrottle(ThrottleForApoapsis(apoapsis));
+                    rm.SetThrottle(altitude < turnStartAltitude + 5000.0 ? 1f : ThrottleForApoapsis(apoapsis));
 
                     // Rescue: inside atmosphere with unsafe periapsis → burn prograde
                     if (!aboveAtmo && !IsPeriSafe(periAlt, atmosphereH))
