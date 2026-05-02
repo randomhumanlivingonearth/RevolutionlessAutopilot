@@ -22,9 +22,22 @@ namespace RevolutionlessAutopilot
 
         public static void Load()
         {
-            if (!JsonWrapper.TryLoadJson(configPath, out data) && configPath.FileExists())
+            data = null;
+            if (configPath.FileExists())
             {
-                Debug.Log("RevolutionlessAutopilot: Config file invalid, using defaults.");
+                try
+                {
+                    data = JsonWrapper.FromJson<SettingsData>(configPath.ReadText());
+                    if (data == null)
+                    {
+                        Debug.Log("RevolutionlessAutopilot: Config file invalid, using defaults.");
+                    }
+                }
+                catch (Exception exception)
+                {
+                    Debug.LogException(exception);
+                    Debug.Log("RevolutionlessAutopilot: Config file invalid, using defaults.");
+                }
             }
             data = data ?? new SettingsData();
             Save();

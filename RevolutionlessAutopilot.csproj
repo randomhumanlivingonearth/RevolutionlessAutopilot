@@ -37,6 +37,9 @@
     <Reference Include="Assembly-CSharp">
       <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Spaceflight Simulator\Spaceflight Simulator Game\Spaceflight Simulator_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\Spaceflight Simulator\Spaceflight Simulator Game\Spaceflight Simulator_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -72,10 +75,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AscentAutopilot.cs" />
+    <Compile Include="RocketManager.cs" />
     <Compile Include="LandingAutopilot.cs" />
     <Compile Include="AutopilotUpdater.cs" />
-    <Compile Include="OrbitManager.cs" />
-    <Compile Include="RocketManager.cs" />
     <Compile Include="GUI.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
